@@ -1,0 +1,47 @@
+#Generate SSL certs & SSH keys locally
+- name: Creating certificate dir and setting permissions
+  file:
+    path: "{{redelk_cert_path}}"
+    state: directory
+    mode: 0775
+  delegate_to: localhost
+
+- name: Deploy openssl configuration file
+  template:
+    src: config.cnf.j2
+    dest: "{{redelk_cert_path}}/config.cnf"
+  delegate_to: localhost
+
+- name: Check if CA already exists
+  stat:
+    path: "{{redelk_cert_path}}/redelkCA.key"
+  register: redelkca
+  delegate_to: localhost
+
+- name: Generate RedELK CA
+  shell: "{{ item }}"
+  args:
+    chdir: "{{redelk_cert_path}}"
+  with_items:
+    - "openssl genrsa -out redelkCA.key 2048"
+    - "openssl req -config config.cnf -new -key redelkCA.key -x509 -days 3650 -nodes -sha256 -out redelkCA.crt -extensions v3_ca"
+  delegate_to: localhost
+  when: redelkca.stat.exists == False
+
+- name: Generate RedELK server certificate
+  shell: "{{ item }}"
+  args:
+    chdir: "{{redelk_cert_path}}"
+  with_items:
+    - "openssl genrsa -out elkserver.key.pem 2048"
+    - "openssl req -sha512 -new -key elkserver.key.pem -out elkserver.csr -config config.cnf"
+    - "openssl x509 -days 3650 -req -sha512 -in elkserver.csr -CAcreateserial -CA redelkCA.crt -CAkey redelkCA.key -out elkserver.crt -extensions v3_req -extfile config.cnf"
+    - "openssl pkcs8 -in elkserver.key.pem -topk8 -nocrypt -out elkserver.key"
+  delegate_to: localhost
+  when: redelkca.stat.exists == False
+
+- name: Copy RedELK certificates to the hosts
+  copy:
+    src: certificates/redelk/
+    dest: "{{optsec_dir}}/certs/"
+  register: redelkcacopy

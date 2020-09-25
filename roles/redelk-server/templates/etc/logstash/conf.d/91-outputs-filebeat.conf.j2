@@ -1,0 +1,30 @@
+output {
+  if [agent][type] == "filebeat" and ![c2][log][type] and ![infra][log][type] {
+    if [@metadata][pipeline] {
+      elasticsearch {
+        hosts => ["localhost:9200"]
+        sniffing => true
+        manage_template => false
+        ilm_enabled => true
+        index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}-000001"
+        pipeline => "%{[@metadata][pipeline]}"
+        user => ["logstash"]
+        password => ["{{es_logstash_system_password}}"]
+        ssl => true
+        cacert => "/etc/logstash/redelkCA.crt"
+      }
+    } else {
+      elasticsearch {
+        hosts => ["localhost:9200"]
+        sniffing => true
+        manage_template => false
+        ilm_enabled => true
+        index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}-000001"
+        user => ["logstash"]
+        password => ["{{es_logstash_system_password}}"]
+        ssl => true
+        cacert => "/etc/logstash/redelkCA.crt"
+      }
+    }
+  }
+}

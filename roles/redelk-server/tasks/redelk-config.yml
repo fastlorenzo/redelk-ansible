@@ -1,0 +1,27 @@
+---
+# TODO: move to {{optsec_dir}}/redelk
+- name: Copying RedELK config in /etc/redelk/
+  become: yes
+  copy:
+    src: etc/redelk/
+    dest: /etc/redelk/
+    owner: "{{redelk_user}}"
+    group: "{{redelk_user}}"
+
+- name: Building and copying RedELK config files in /etc/redelk/
+  become: yes
+  template:
+    src: "{{item}}"
+    dest: "/etc/redelk/{{ item | basename | regex_replace('.j2','') }}"
+  with_fileglob:
+    - ../templates/etc/redelk/*.j2
+
+- name: Recursively setting permissions of /etc/redelk folder
+  become: yes
+  file:
+    path: /etc/redelk
+    state: directory
+    recurse: yes
+    owner: "{{redelk_user}}"
+    group: "{{redelk_user}}"
+    mode: u=rwX,g=rwX,o=-rwx

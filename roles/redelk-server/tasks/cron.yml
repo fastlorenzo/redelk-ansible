@@ -1,0 +1,66 @@
+---
+- name: Creating cron - RedELK rsync commands for getting remote log files from teamservers via rsync
+  become: yes
+  cron:
+    name: "RedELK rsync comands for getting remote log files from {{ item }} via rsync"
+    job: "/usr/share/redelk/bin/getremotelogs.sh {{ hostvars[item].ip }} {{ item }} {{redelk_user}}"
+    user: "{{redelk_user}}"
+    minute: "*/2"
+  with_items:
+    - "{{hostvars.values()|list|json_query(\"[?type=='c2'].hostname\")}}"
+
+- name: Creating cron - Run update script for TOR exit nodes twice a day
+  become: yes
+  cron:
+    name: "Run update script for TOR exit nodes twice a day"
+    job: "/usr/share/redelk/bin/run_torexitnodeupdate.sh"
+    user: "{{redelk_user}}"
+    minute: 0
+    hour: 0,12
+
+- name: Creating cron - Run update script for SSLBL SSL Certificate Blacklist
+  become: yes
+  cron:
+    name: "Run update script for SSLBL SSL Certificate Blacklist"
+    job: "/usr/share/redelk/bin/run_abusechsslcertupdate.sh"
+    user: "{{redelk_user}}"
+    minute: "*/30"
+
+- name: Creating cron - Run update script for rogue domain list
+  become: yes
+  cron:
+    name: "Run update script for rogue domain list"
+    job: "/usr/share/redelk/bin/run_roguedomainsupdate.sh"
+    user: "{{redelk_user}}"
+    minute: "*/30"
+
+- name: Creating cron - Start script to create thumbnails of received screenshots
+  become: yes
+  cron:
+    name: "Start script to create thumbnails of received screenshots"
+    job: "/usr/share/redelk/bin/makethumbnail.py {{optsec_dir}}/html/c2logs/"
+    user: "{{redelk_user}}"
+    minute: "*/2"
+
+- name: Creating cron - Start the IPList update in ELK
+  become: yes
+  cron:
+    name: "Start the IPList update in ELK"
+    job: "/usr/share/redelk/bin/run_update_iplist.sh"
+    user: "{{redelk_user}}"
+    minute: "*/5"
+
+- name: Creating cron - Start the enrichment of beacon data in ELK
+  become: yes
+  cron:
+    name: "Start the enrichment of beacon data in ELK"
+    job: "/usr/share/redelk/bin/run_enrich.sh"
+    user: "{{redelk_user}}"
+
+- name: Creating cron - Start the checks for alarms
+  become: yes
+  cron:
+    name: "Start the checks for alarms"
+    job: "/usr/share/redelk/bin/run_alarm.sh"
+    user: "{{redelk_user}}"
+    minute: "*/5"

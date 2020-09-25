@@ -1,0 +1,128 @@
+---
+- name: Copy /etc/elasticsearch/* configuration file to the hosts
+  become: yes
+  template:
+    src: "{{ item }}"
+    dest: "/etc/elasticsearch/{{ item | basename | regex_replace('.j2','') }}"
+    owner: root
+    group: elasticsearch
+    mode: 0440
+  with_fileglob:
+    - ../templates/etc/elasticsearch/*
+  register: elasticsearchcfg
+
+- name: Copy RedELK certs to /etc/elasticsearch folder
+  become: yes
+  copy:
+    src: "{{redelk_cert_path}}/{{item}}"
+    dest: "/etc/elasticsearch/{{item}}"
+    owner: root
+    group: elasticsearch
+    mode: 0440
+  with_items:
+    - "{{ansible_hostname}}.crt"
+    - "{{ansible_hostname}}.key"
+    - redelkCA.crt
+  register: elasticsearchcerts
+
+- name: Setting elastic user's password
+  become: yes
+  shell:
+    cmd: printf "%s" "{{es_elastic_password}}" | /usr/share/elasticsearch/bin/elasticsearch-keystore add -f -x "bootstrap.password"
+
+- name: Recursively setting permissions of /etc/elasticsearch folder
+  become: yes
+  file:
+    path: /etc/elasticsearch
+    state: directory
+    recurse: yes
+    owner: root
+    group: elasticsearch
+    mode: u=rwX,g=rX,o=-rwx
+
+- name: Restarting elasticsearch and enabling on boot
+  become: yes
+  service:
+    name: elasticsearch
+    state: restarted
+    enabled: yes
+  when: elasticsearchcfg.changed or elasticsearchcerts.changed
+
+- name: Wait for elasticsearch to be ready
+  uri:
+    url: "https://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=50s"
+    status_code: 200
+    url_username: elastic
+    url_password: "{{es_elastic_password}}"
+    validate_certs: no
+    force_basic_auth: yes
+  register: elasticsearch_status
+  until: elasticsearch_status.status == 200
+  retries: 60
+  delay: 5
+
+- name: Changing kibana's elasticsearch user password
+  uri:
+    url: "https://localhost:9200/_security/user/kibana/_password"
+    method: POST
+    body_format: json
+    body:
+      password: "{{es_kibana_password}}"
+    url_username: elastic
+    url_password: "{{es_elastic_password}}"
+    validate_certs: no
+    force_basic_auth: yes
+
+- name: Changing logstash_system's elasticsearch user password
+  uri:
+    url: "https://localhost:9200/_security/user/logstash_system/_password"
+    method: POST
+    body_format: json
+    body:
+      password: "{{es_logstash_system_password}}"
+    url_username: elastic
+    url_password: "{{es_elastic_password}}"
+    validate_certs: no
+    force_basic_auth: yes
+
+- name: Adding redelk elasticsearch user
+  uri:
+    url: "https://localhost:9200/_security/user/{{es_redelk_user}}"
+    method: POST
+    body_format: json
+    body:
+      password: "{{es_redelk_password}}"
+      roles:
+      - superuser
+    url_username: elastic
+    url_password: "{{es_elastic_password}}"
+    validate_certs: no
+    force_basic_auth: yes
+
+- name: Installing RedELK index templates
+  uri:
+    url: "https://localhost:9200/_template/{{item}}"
+    url_username: elastic
+    url_password: "{{es_elastic_password}}"
+    method: PUT
+    body_format: json
+    body: "{{ lookup('file','files/templates/redelk_elasticsearch_template_' +item + '.json') }}"
+    force_basic_auth: yes
+    validate_certs: no
+  with_items:
+    - rtops
+    - implantsdb
+    - redirtraffic
+
+- name: Installing RedELK ilm policy
+  uri:
+    url: "https://localhost:9200/_ilm/policy/redelk"
+    url_username: elastic
+    url_password: "{{es_elastic_password}}"
+    method: PUT
+    body_format: json
+    body: "{{ item }}"
+    force_basic_auth: yes
+    validate_certs: no
+  with_file:
+    - files/templates/redelk_elasticsearch_ilm.json

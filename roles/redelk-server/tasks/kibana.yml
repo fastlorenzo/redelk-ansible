@@ -1,0 +1,158 @@
+---
+- name: Copy kibana configuration file to the hosts
+  become: yes
+  template:
+    src: etc/kibana/kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+  register: kibanacfg
+
+- name: Copy RedELK certs to /etc/kibana folder
+  become: yes
+  copy:
+    src: "{{redelk_cert_path}}/{{item}}"
+    dest: "/etc/kibana/{{item}}"
+    owner: root
+    group: kibana
+    mode: 0440
+  with_items:
+    - "{{ansible_hostname}}.crt"
+    - "{{ansible_hostname}}.key"
+    - redelkCA.crt
+  register: kibanacerts
+
+- name: Recursively setting permissions of /etc/kibana folder
+  become: yes
+  file:
+    path: /etc/kibana
+    state: directory
+    recurse: yes
+    owner: root
+    group: kibana
+    mode: u=rwX,g=rX,o=-rwx
+
+- name: Restarting kibana and enabling on boot
+  become: yes
+  service:
+    name: kibana
+    state: restarted
+    enabled: yes
+  when: kibanacfg.changed or kibanacerts.changed
+  tags:
+    - service
+
+- name: Wait for Kibana to be ready
+  uri:
+    url: "https://localhost:5601/api/status"
+    status_code: 200
+    url_username: kibana
+    url_password: "{{es_kibana_password}}"
+    validate_certs: no
+    force_basic_auth: yes
+  register: kibana_status
+  until: kibana_status.status == 200
+  retries: 60
+  delay: 5
+
+- name: Installing Kibana config
+  uri:
+    url: "https://localhost:5601/api/kibana/settings"
+    method: POST
+    headers:
+      "kbn-xsrf": "true"
+    url_username: elastic
+    url_password: "{{es_elastic_password}}"
+    body_format: json
+    body: "{{ item }}"
+    validate_certs: no
+    force_basic_auth: yes
+  with_file:
+    - files/templates/redelk_kibana_settings.json
+
+- name: Installing Kibana default space config
+  uri:
+    url: "https://localhost:5601/api/spaces/space/default?overwrite=true"
+    method: PUT
+    headers:
+      "kbn-xsrf": "true"
+    url_username: elastic
+    url_password: "{{es_elastic_password}}"
+    body_format: json
+    body: "{{ item }}"
+    validate_certs: no
+    force_basic_auth: yes
+  with_file:
+    - files/templates/redelk_kibana_space_default.json
+
+# TODO: check what remains in the visuals file and remove when possible
+- name: Installing Kibana template
+  uri:
+    url: "https://localhost:5601/api/saved_objects/_bulk_create"
+    method: POST
+    url_username: elastic
+    url_password: "{{es_elastic_password}}"
+    headers:
+      "kbn-xsrf": "true"
+    body_format: json
+    body: "{{ item }}"
+    validate_certs: no
+    force_basic_auth: yes
+  with_file:
+    - files/templates/redelk_kibana_visuals.json
+
+# TODO: change to add it in the namespace
+# - name: Inserting the superawesomesauce RedELK logo into Kibana
+#   copy:
+#     src="{{ item }}"
+#     dest=/usr/share/kibana/optimize/bundles/
+#   with_fileglob:
+#     - usr/share/kibana/optimize/bundles/*
+
+- name: Copying Kibana objects to the host (in /tmp)
+  become: yes
+  copy:
+    src: "{{item}}"
+    dest: "/tmp/{{ item | basename }}"
+    mode: 0755
+  with_fileglob:
+    - templates/redelk_kibana_*.ndjson
+  register: kibanaobj
+
+# TODO: use uri when ansible 2.10 is released (currently not possible to send valid form-data)
+- name: Installing Kibana objects
+  become: yes
+  shell: "curl -k 'https://localhost:5601/api/saved_objects/_import?overwrite=true' -u 'elastic:{{es_elastic_password}}' -H 'kbn-xsrf:true' -F file=@/tmp/{{ item | basename }}"
+  with_fileglob:
+    - templates/redelk_kibana_*.ndjson
+  when: kibanaobj.changed
+
+- name: Copying Elastic SIEM objects to the host (in /tmp)
+  become: yes
+  copy:
+    src: "{{item}}"
+    dest: "/tmp/{{ item | basename }}"
+    mode: 0755
+  with_fileglob:
+    - templates/redelk_siem_*.ndjson
+  register: siemobj
+
+# TODO: use uri when ansible 2.10 is released (currently not possible to send valid form-data)
+- name: Installing Elastic SIEM detection rules
+  become: yes
+  shell: "curl -k 'https://localhost:5601/api/detection_engine/rules/_import?overwrite=true' -u 'elastic:{{es_elastic_password}}' -H 'kbn-xsrf:true' -F file=@/tmp/{{ item | basename }}"
+  with_fileglob:
+    - templates/redelk_siem_*.ndjson
+  when: siemobj.changed
+
+# TODO: fix this when first run ("Pre-packaged rules cannot be installed until the signals index is created: .siem-signals-default")
+# - name: Loading pre-built SIEM detection rules
+#   uri:
+#     url: "https://localhost:5601/api/detection_engine/rules/prepackaged"
+#     url_username: elastic
+#     url_password: "{{elk_elastic_password}}"
+#     headers:
+#       "kbn-xsrf": "true"
+#     method: PUT
+#     body_format: json
+#     body: ""
+#     force_basic_auth: yes
+#     validate_certs: no

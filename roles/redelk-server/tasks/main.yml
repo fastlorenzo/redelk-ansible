@@ -1,0 +1,50 @@
+---
+# RedELK server installation tasks
+
+# Setup needed users and SSH access
+- import_tasks: ssh.yml
+  tags:
+    - ssh
+
+# Installed required packages
+- import_tasks: packages.yml
+  tags:
+    - packages
+
+# Generate certificates
+- import_tasks: pki-elastic.yml
+  tags:
+    - pki
+
+# Setup ElasticSearch
+- import_tasks: elasticsearch.yml
+  tags:
+    - elasticsearch
+
+# Setup Logstash
+- import_tasks: logstash.yml
+  tags:
+    - logstash
+
+# Setup Kibana
+- import_tasks: kibana.yml
+  tags:
+    - kibana
+
+# Setup Nginx
+- import_tasks: nginx.yml
+  tags:
+    - nginx
+
+# Setup RedELK
+- import_tasks: redelk-setup.yml
+  tags:
+    - redelk-setup
+- import_tasks: redelk-config.yml
+  tags:
+    - redelk-config
+
+# Setup CRON tasks
+- import_tasks: cron.yml
+  tags:
+    - cron

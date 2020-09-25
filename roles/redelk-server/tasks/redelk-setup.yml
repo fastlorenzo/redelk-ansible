@@ -1,0 +1,46 @@
+---
+- name: Copying RedELK background running scripts (remote logs, thumbnails, enrichment, alarms, etc)
+  become: yes
+  copy:
+    src: usr/share/redelk/bin/
+    dest: /usr/share/redelk/bin/
+
+- name: Copying RedELK background running scripts (remote logs, thumbnails, enrichment, alarms, etc)
+  become: yes
+  template:
+    src: "{{item}}"
+    dest: "/usr/share/redelk/bin/{{ item | basename | regex_replace('.j2','') }}"
+  with_fileglob:
+    - ../templates/usr/share/redelk/bin/*
+
+- name: Installing python elasticsearch library
+  become: yes
+  pip:
+    name:
+      - elasticsearch
+      - pymsteams
+    executable: pip3
+
+- name: Installing Chameleon python libraries (using pip)
+  become: yes
+  pip:
+    requirements: /usr/share/redelk/bin/Chameleon/requirements.txt
+
+- name: Creating RedELK log directory and setting permissions
+  become: yes
+  file:
+    path: /var/log/redelk
+    owner: "{{redelk_user}}"
+    group: "{{redelk_user}}"
+    state: directory
+    mode: 0770
+
+- name: Recursively setting permissions of /usr/share/redelk folder
+  become: yes
+  file:
+    path: /usr/share/redelk
+    state: directory
+    recurse: yes
+    owner: "{{redelk_user}}"
+    group: "{{redelk_user}}"
+    mode: u=rwX,g=rwX,o=rX

@@ -1,0 +1,10 @@
+elasticsearch.username: kibana
+elasticsearch.password: {{es_kibana_password}}
+elasticsearch.hosts: [ "https://localhost:9200" ]
+elasticsearch.ssl.certificateAuthorities: [ "/etc/kibana/redelkCA.crt" ]
+
+server.ssl.enabled: true
+server.ssl.certificate: /etc/kibana/{{ansible_hostname}}.crt
+server.ssl.key: /etc/kibana/{{ansible_hostname}}.key
+
+xpack.encryptedSavedObjects.encryptionKey: {{es_kibana_encryptionKey}}

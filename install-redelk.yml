@@ -1,0 +1,11 @@
+- name: Gather facts from all hosts
+  hosts: all
+  gather_facts: True
+
+- name: Apply redelk-server role to monitoring server(s)
+  hosts: monitoring
+  gather_facts: True
+  tags:
+    - monitoring
+  roles:
+    - redelk-server

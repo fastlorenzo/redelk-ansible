@@ -1,0 +1,15 @@
+output {
+  if ([@metadata][beat] == "apm") {
+    elasticsearch{
+      hosts => ["localhost:9200"]
+      sniffing => true
+      manage_template => false
+      ilm_enabled => true
+      index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}-000001"
+      user => ["logstash"]
+      password => ["{{es_logstash_system_password}}"]
+      ssl => true
+      cacert => "/etc/logstash/redelkCA.crt"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+---
+- name: Copy /etc/logstash/* configuration file to the hosts
+  become: yes
+  template:
+    src: "{{ item }}"
+    dest: "/etc/logstash/{{ item | basename | regex_replace('.j2','') }}"
+    owner: logstash
+    group: logstash
+  with_fileglob:
+    - ../templates/etc/logstash/*
+  register: logstashcfg
+
+- name: Copy /etc/logstash/conf.d/* configuration files to the hosts
+  become: yes
+  template:
+    src: "{{ item }}"
+    dest: "/etc/logstash/conf.d/{{ item | basename | regex_replace('.j2','') }}"
+    owner: logstash
+    group: logstash
+  with_fileglob:
+    - ../templates/etc/logstash/conf.d/*
+  register: logstashcfgdir
+
+- name: Copy RedELK certs to /etc/logstash folder
+  become: yes
+  copy:
+    src: "{{redelk_cert_path}}/{{item}}"
+    dest: "/etc/logstash/{{item}}"
+    owner: root
+    group: logstash
+    mode: 0440
+  with_items:
+    - "{{ansible_hostname}}.crt"
+    - "{{ansible_hostname}}.key"
+    - redelkCA.crt
+  register: logstashcerts
+
+- name: Convert logstash private key to pkcs8 (for Beats input)
+  become: yes
+  args:
+    chdir: "/etc/logstash"
+  command: "openssl pkcs8 -in /etc/logstash/{{ansible_hostname}}.key -topk8 -nocrypt -out /etc/logstash/{{ansible_hostname}}.pkcs8.key"
+  when: logstashcerts.changed
+
+- name: Copy logstash ruby scripts file to the hosts
+  become: yes
+  copy:
+    src: etc/logstash/ruby-scripts
+    dest: /etc/logstash/
+  register: logstashrubyscripts
+
+- name: Recursively setting permissions of /etc/logstash folder
+  become: yes
+  file:
+    path: /etc/logstash
+    state: directory
+    recurse: yes
+    owner: root
+    group: logstash
+    mode: u=rwX,g=rX,o=-rwx
+
+- name: Restarting logstash and enabling on boot
+  become: yes
+  service:
+    name: logstash
+    state: restarted
+    enabled: yes
+  when: logstashcfg.changed or logstashcfgdir.changed or logstashcerts.changed

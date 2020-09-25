@@ -1,0 +1,8 @@
+path.data: /var/lib/logstash
+path.logs: /var/log/logstash
+
+xpack.monitoring.enabled: true
+xpack.monitoring.elasticsearch.username: logstash_system
+xpack.monitoring.elasticsearch.password: {{es_logstash_system_password}}
+xpack.monitoring.elasticsearch.hosts: [ 'https://localhost:9200' ]
+xpack.monitoring.elasticsearch.ssl.certificate_authority: /etc/logstash/redelkCA.crt

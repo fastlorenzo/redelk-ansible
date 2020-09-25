@@ -1,0 +1,95 @@
+#Generate SSL certs on monitoring server
+- name: Creating certificate dir and setting permissions
+  become: yes
+  file:
+    path: "{{optsec_dir}}/certs/"
+    state: directory
+    mode: 0750
+    owner: root
+    group: root
+
+- name: Check if CA already exists
+  become: yes
+  stat:
+    path: "{{optsec_dir}}/certs/redelkCA.p12"
+  register: redelkca
+
+- name: Generate RedELK CA
+  become: yes
+  args:
+    chdir: "{{optsec_dir}}/certs"
+  command: "/usr/share/elasticsearch/bin/elasticsearch-certutil ca --out {{optsec_dir}}/certs/redelkCA.p12 --pass '{{ redelk_ca_password }}'"
+  when: not redelkca.stat.exists
+  register: redelkcagen
+
+- name: Convert RedELK CA from p12 to pem
+  become: yes
+  args:
+    chdir: "{{optsec_dir}}/certs"
+  command: "openssl pkcs12 -in {{optsec_dir}}/certs/redelkCA.p12 -out {{optsec_dir}}/certs/redelkCA.crt -nokeys -nodes -clcerts -passin 'pass:{{redelk_ca_password}}'"
+  when: redelkcagen.changed
+
+- name: Check if certificates and private keys exists for all nodes
+  become: yes
+  stat:
+    path: "{{optsec_dir}}/certs/{{item}}.p12"
+  with_items:
+    - "{{hostvars.values()|list|json_query(\"[].ansible_hostname\")}}"
+  register: redelkcerts
+
+- name: Generate RedELK certificates
+  become: yes
+  args:
+    chdir: "{{optsec_dir}}/certs"
+  command: "/usr/share/elasticsearch/bin/elasticsearch-certutil cert --dns 'localhost,{{item.item}}' --ip 127.0.0.1 --ca {{optsec_dir}}/certs/redelkCA.p12 --out {{optsec_dir}}/certs/{{item.item}}.p12 --ca-pass '{{ redelk_ca_password }}' --pass '{{ redelk_ca_password }}'"
+  loop: "{{redelkcerts.results}}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: not item.stat.exists
+  register: redelkcertsgen
+
+- name: Convert RedELK certificates from p12 to pem
+  become: yes
+  args:
+    chdir: "{{optsec_dir}}/certs"
+  command: "openssl pkcs12 -in {{optsec_dir}}/certs/{{item.item.item}}.p12 -out {{optsec_dir}}/certs/{{item.item.item}}.crt -nokeys -nodes -clcerts -passin 'pass:{{redelk_ca_password}}'"
+  loop: "{{redelkcertsgen.results}}"
+  loop_control:
+    label: "{{ item.item.item }}"
+  when: item.changed
+
+- name: Convert RedELK private keys from p12 to pem
+  become: yes
+  args:
+    chdir: "{{optsec_dir}}/certs"
+  command: "openssl pkcs12 -in {{optsec_dir}}/certs/{{item.item.item}}.p12 -out {{optsec_dir}}/certs/{{item.item.item}}.key -nocerts -nodes -passin 'pass:{{redelk_ca_password}}'"
+  loop: "{{redelkcertsgen.results}}"
+  loop_control:
+    label: "{{ item.item.item }}"
+  when: item.changed
+
+- name: Validate the sudoers file before saving
+  become: yes
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^{{ansible_user}} ALL='
+    line: '{{ansible_user}} ALL=(ALL) NOPASSWD: /usr/bin/rsync'
+    validate: /usr/sbin/visudo -cf %s
+
+- name: Creating local certificate dir and setting permissions
+  file:
+    path: "{{redelk_cert_path}}"
+    state: directory
+    mode: 0750
+    recurse: "yes"
+  delegate_to: localhost
+
+- name: Fetch RedELK certificates from hosts
+  become: yes
+  synchronize:
+    src: /opt/certs/
+    dest: "{{redelk_cert_path}}/"
+    mode: pull
+    use_ssh_args: yes
+  when: redelkcagen.changed or redelkcertsgen.changed
