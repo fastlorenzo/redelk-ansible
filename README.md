@@ -2,7 +2,7 @@
 
 This repository contains multiple Ansible roles allowing to deploy [RedELK](https://github.com/outflanknl/RedELK/).
 
-All credits comes to the authors and contributors of RedELK.
+All credits goes to the authors and contributors of RedELK.
 
 ## Install requirements
 
