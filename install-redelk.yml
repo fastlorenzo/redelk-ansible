@@ -9,3 +9,19 @@
     - monitoring
   roles:
     - redelk-server
+
+- name: Apply redelk-client role to teamservers
+  hosts: teamservers
+  gather_facts: True
+  tags:
+    - teamservers
+  roles:
+    - redelk-client
+
+- name: Apply redelk-client role to redirectors
+  hosts: redirectors
+  gather_facts: True
+  tags:
+    - redirectors
+  roles:
+    - redelk-client
