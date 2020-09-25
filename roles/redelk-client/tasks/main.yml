@@ -1,0 +1,108 @@
+---
+# RedELK clients install (C2 and redirectors) tasks
+- name: Install depencies packages (apt)
+  become: yes
+  apt:
+    name:
+      - apt-transport-https
+    state: present
+    update_cache: yes
+  tags:
+    - packages
+
+- name: Adding GPG key of Elastic
+  become: yes
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+  register: redelk
+  tags:
+    - packages
+
+- name: Adding Elastic APT repository
+  become: yes
+  apt_repository:
+    repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+    state: present
+    filename: elastic-7.x
+  when: redelk.changed
+  tags:
+    - packages
+
+- name: Adding redelk user
+  become: yes
+  user:
+    name: "{{redelk_user}}"
+    home: "{{optsec_dir}}/{{redelk_user}}"
+  tags:
+    - user
+
+- name: Adding SSH authorized_key for redelk user
+  become: yes
+  authorized_key:
+    user: "{{redelk_user}}"
+    key: "{{ lookup('file', '{{ssh_keys_path}}/{{redelk_user}}_id_rsa.pub') }}"
+  tags:
+    - ssh
+
+- name: Install filebeat and requirements (apt)
+  become: yes
+  apt:
+    name:
+      - filebeat={{es_version}}
+      - python3-pip
+    state: present
+    update_cache: yes
+  register: pkg
+  tags:
+    - packages
+
+- name: Install additional beats (apt)
+  become: yes
+  apt:
+    name:
+      - auditbeat={{es_version}}
+      - metricbeat={{es_version}}
+      - packetbeat={{es_version}}
+    state: present
+    update_cache: yes
+  register: pkg
+  tags:
+    - packages
+  when: deploy_all_beats | bool
+
+- name: Instal required python3 modules
+  become: yes
+  pip:
+    name:
+      - javaobj-py3
+  tags:
+    - packages
+
+- import_tasks: filebeat.yml
+  tags:
+    - filebeat
+    - beats
+
+- import_tasks: auditbeat.yml
+  tags:
+    - auditbeat
+    - beats
+  when: deploy_all_beats | bool
+
+- import_tasks: metricbeat.yml
+  tags:
+    - metricbeat
+    - beats
+  when: deploy_all_beats | bool
+
+- import_tasks: packetbeat.yml
+  tags:
+    - packetbeat
+    - beats
+  when: deploy_all_beats | bool
+
+- import_tasks: c2.yml
+  tags:
+    - c2
+  when: hostvars[inventory_hostname].type == 'c2'

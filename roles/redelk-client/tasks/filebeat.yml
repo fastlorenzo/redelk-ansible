@@ -1,0 +1,41 @@
+---
+# filebeat
+- name: Copy filebeat.yml config file to the hosts
+  become: yes
+  template:
+    src: filebeat.yml.j2
+    dest: /etc/filebeat/filebeat.yml
+  register: filebeatcfg
+  tags:
+    - config
+
+- name: Copy RedELK CA file to the hosts
+  become: yes
+  copy:
+    src: certificates/redelk/redelkCA.crt
+    dest: /etc/filebeat/redelkCA.crt
+  register: redelkca
+  tags:
+    - pki
+
+- name: Recursively setting permissions of /etc/filebeat folder
+  become: yes
+  file:
+    path: /etc/filebeat
+    state: directory
+    recurse: yes
+    owner: root
+    group: root
+    mode: u=rwX,g=rX,o=-rwx
+  tags:
+    - config
+
+- name: Restarting filebeat and enabling on boot
+  become: yes
+  service:
+    name: filebeat
+    state: restarted
+    enabled: yes
+  when: filebeatcfg.changed or redelkca.changed
+  tags:
+    - services

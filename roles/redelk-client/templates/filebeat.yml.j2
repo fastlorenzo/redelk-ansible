@@ -1,0 +1,200 @@
+{{ ansible_managed | comment }}
+
+filebeat.inputs:
+{% if hostvars[inventory_hostname].type == 'c2' %}
+- type: log
+  scan_frequency: 5s
+  enabled: true
+  fields_under_root: true
+  paths:
+    - {{optsec_dir}}/cobaltstrike/logs/*/events.log
+  fields:
+    infra:
+      log:
+        type: rtops
+    c2:
+      program: cobaltstrike
+      log:
+        type: events
+
+- type: log
+  scan_frequency: 5s
+  enabled: true
+  fields_under_root: true
+  paths:
+    - {{optsec_dir}}/cobaltstrike/logs/*/weblog.log
+  fields:
+    infra:
+      log:
+        type: rtops
+    c2:
+      program: cobaltstrike
+      log:
+        type: weblog
+
+- type: log
+  scan_frequency: 5s
+  enabled: true
+  fields_under_root: true
+  paths:
+    - {{optsec_dir}}/cobaltstrike/logs/*/downloads.log
+  fields:
+    infra:
+      log:
+        type: rtops
+    c2:
+      program: cobaltstrike
+      log:
+        type: downloads
+
+- type: log
+  scan_frequency: 5s
+  enabled: true
+  fields_under_root: true
+  paths:
+    - {{optsec_dir}}/cobaltstrike/data/export_credentials.tsv
+  fields:
+    infra:
+      log:
+        type: rtops
+    c2:
+      program: cobaltstrike
+      log:
+        type: credentials
+
+- type: log
+  scan_frequency: 5s
+  enabled: true
+  fields_under_root: true
+  paths:
+    - {{optsec_dir}}/cobaltstrike/data/export_listeners.log
+  fields:
+    infra:
+      log:
+        type: rtops
+    c2:
+      program: cobaltstrike
+      log:
+        type: listeners
+
+- type: log
+  scan_frequency: 5s
+  enabled: true
+  fields_under_root: true
+  paths:
+    - {{optsec_dir}}/cobaltstrike/logs/*/*/beacon_*.log
+{% raw %}
+  # Since Cobalt Strike version 3.14 the time format in the logs is changed. Here we use regex 'or' function (expr1)|(expr2) to match new or old format
+  multiline.pattern: '(^\d\d\/\d\d\s\d\d\:\d\d\:\d\d\sUTC\s\[)|(^\d\d\/\d\d\s\d\d\:\d\d\:\d\d\s\[)' # match "06/19 12:32:56 UTC [" or "06/19 12:32:56 ["
+{% endraw %}
+  multiline.negate: true
+  multiline.match: after
+  fields:
+    infra:
+      log:
+        type: rtops
+    c2:
+      program: cobaltstrike
+      log:
+        type: beacon
+
+- type: log
+  scan_frequency: 5s
+  enabled: true
+  fields_under_root: true
+  paths:
+    - {{optsec_dir}}/cobaltstrike/logs/*/*/keystrokes/keystrokes_*.txt
+{% raw %}
+  # Since Cobalt Strike version 3.14 the time format in the logs is changed. Here we use regex 'or' function (expr1)|(expr2) to match new or old format
+  multiline.pattern: '(^\d\d\/\d\d\s\d\d\:\d\d\:\d\d\sUTC\s\[)|(^\d\d\/\d\d\s\d\d\:\d\d\:\d\d\s\[)' # match "06/19 12:32:56 UTC [" or "06/19 12:32:56 ["
+{% endraw %}
+  multiline.negate: true
+  multiline.match: after
+  fields:
+    infra:
+      log:
+        type: rtops
+    c2:
+      program: cobaltstrike
+      log:
+        type: keystrokes
+{% endif %}
+
+{% if hostvars[inventory_hostname].type == 'redirector' %}
+{% raw %}
+- type: log
+  enabled: true
+  fields_under_root: true
+  paths:
+    - /var/log/haproxy.log
+  fields:
+    infra:
+      log:
+        type: redirtraffic
+    redir:
+      program: haproxy
+
+- type: log
+  enabled: true
+  fields_under_root: true
+  paths:
+    - /var/log/apache2/access.log
+  fields:
+    infra:
+      log:
+        type: redirtraffic
+    redir:
+      program: apache
+
+- type: log
+  enabled: true
+  fields_under_root: true
+  paths:
+    - /var/log/nginx/access.log
+  fields:
+    infra:
+      log:
+        type: redirtraffic
+    redir:
+      program: nginx
+{% endraw %}
+{% endif %}
+
+filebeat.modules:
+
+- module: system
+  # Syslog
+  syslog:
+    enabled: true
+  # Authorization logs
+  auth:
+    enabled: true
+
+- module: auditd
+  log:
+    enabled: true
+
+- module: iptables
+  log:
+    enabled: true
+
+{% if hostvars[inventory_hostname].type == 'redirector' %}
+{% raw %}
+- module: haproxy
+  log:
+    enabled: true
+{% endraw %}
+{% endif %}
+
+setup.ilm.enabled: false
+
+name: "{{ ansible_hostname }}"
+fields_under_root: true
+fields:
+  infra:
+    attack_scenario: {{ attack_scenario }}
+
+output.logstash:
+  hosts: ["localhost:5044"]
+  ssl.certificate_authorities:
+    - /etc/filebeat/redelkCA.crt

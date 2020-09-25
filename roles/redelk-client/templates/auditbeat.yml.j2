@@ -1,0 +1,110 @@
+{{ ansible_managed | comment }}
+
+#==========================  Modules configuration =============================
+auditbeat.modules:
+
+# The auditd module collects events from the audit framework in the Linux
+# kernel. You need to specify audit rules for the events that you want to audit.
+- module: auditd
+  resolve_ids: true
+  failure_mode: silent
+  backlog_limit: 8196
+  rate_limit: 0
+  include_raw_message: false
+  include_warnings: false
+  # Load audit rules from separate files. Same format as audit.rules(7).
+  audit_rule_files: [ '${path.config}/audit.rules.d/*.conf' ]
+
+# The file integrity module sends events when files are changed (created,
+# updated, deleted). The events contain file metadata and hashes.
+- module: file_integrity
+  paths:
+  - /bin
+  - /usr/bin
+  - /sbin
+  - /usr/sbin
+  - /etc
+
+  # List of regular expressions to filter out notifications for unwanted files.
+  # Wrap in single quotes to workaround YAML escaping rules. By default no files
+  # are ignored.
+  exclude_files:
+  - '(?i)\.sw[nop]$'
+  - '~$'
+  - '/\.git($|/)'
+
+  # List of regular expressions used to explicitly include files. When configured,
+  # Auditbeat will ignore files unless they match a pattern.
+  #include_files:
+  #- '/\.ssh($|/)'
+
+  # Scan over the configured file paths at startup and send events for new or
+  # modified files since the last time Auditbeat was running.
+  scan_at_start: true
+
+  # Average scan rate. This throttles the amount of CPU and I/O that Auditbeat
+  # consumes at startup while scanning. Default is "50 MiB".
+  scan_rate_per_sec: 50 MiB
+
+  # Limit on the size of files that will be hashed. Default is "100 MiB".
+  # Limit on the size of files that will be hashed. Default is "100 MiB".
+  max_file_size: 100 MiB
+
+  # Hash types to compute when the file changes. Supported types are
+  # blake2b_256, blake2b_384, blake2b_512, md5, sha1, sha224, sha256, sha384,
+  # sha512, sha512_224, sha512_256, sha3_224, sha3_256, sha3_384, sha3_512, and xxh64.
+  # Default is sha1.
+  hash_types: [sha1]
+
+  # Detect changes to files included in subdirectories. Disabled by default.
+  recursive: false
+
+- module: system
+  datasets:
+    - host
+    - login
+    - package
+    - user
+  period: 1m
+
+  # How often datasets send state updates with the
+  # current state of the system (e.g. all currently
+  # running processes, all open sockets).
+  state.period: 12h
+
+  # Enabled by default. Auditbeat will read password fields in
+  # /etc/passwd and /etc/shadow and store a hash locally to
+  # detect any changes.
+  user.detect_password_changes: true
+
+  # File patterns of the login record files.
+  login.wtmp_file_pattern: /var/log/wtmp*
+  login.btmp_file_pattern: /var/log/btmp*
+
+- module: system
+  datasets:
+    - process
+    - socket
+  period: 1s
+
+  # How often datasets send state updates with the
+  # current state of the system (e.g. all currently
+  # running processes, all open sockets).
+  state.period: 12h
+
+
+setup.ilm.enabled: false
+
+name: "{{ ansible_hostname }}"
+fields_under_root: true
+fields:
+  infra:
+    attack_scenario: {{ attack_scenario }}
+processors:
+  - add_cloud_metadata: ~
+  - add_host_metadata: ~
+
+output.logstash:
+  hosts: ["localhost:5044"]
+  ssl.certificate_authorities:
+    - /etc/auditbeat/redelkCA.crt

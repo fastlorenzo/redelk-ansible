@@ -1,0 +1,75 @@
+######### Only for C2 servers #########
+- name: Creating RedELK log directory and setting permissions
+  become: yes
+  file:
+    path: /var/log/redelk
+    owner: "{{redelk_user}}"
+    group: root
+    state: directory
+    mode: 0770
+  tags:
+    - redelk-setup
+
+- name: Creating RedELK bin directory and setting permissions
+  become: yes
+  file:
+    path: /usr/share/redelk/bin
+    owner: root
+    group: "{{redelk_user}}"
+    state: directory
+    mode: 0750
+  tags:
+    - redelk-setup
+
+- name: Copy RedELK bin files to the hosts
+  become: yes
+  template:
+    src: "{{ item }}"
+    dest: "/usr/share/redelk/bin/{{ item | basename | regex_replace('.j2','') }}"
+    owner: root
+    group: "{{redelk_user}}"
+    mode: 0750
+  with_fileglob:
+    - ../templates/usr/share/redelk/*
+  tags:
+    - redelk-setup
+
+- name: Creating crontab for local rscync of cobaltstrike logs
+  become: yes
+  cron:
+    name: "cron.d script for periodic actions related to RedELK"
+    cron_file: redelk_logs
+    job: "/usr/bin/rsync -ax --delete {{optsec_dir}}/cobaltstrike/logs {{optsec_dir}}/{{redelk_user}}/; /bin/chown -R {{redelk_user}}:{{redelk_user}} {{optsec_dir}}/{{redelk_user}}/*"
+    user: root
+  tags:
+    - cron
+
+- name: Creating crontab for local rscync of cobaltstrike profiles
+  become: yes
+  cron:
+    name: "cron.d script for periodic actions related to RedELK"
+    cron_file: redelk_profiles
+    job: "/usr/bin/rsync -ax --delete {{optsec_dir}}/cobaltstrike/profiles {{optsec_dir}}/{{redelk_user}}/; /bin/chown -R {{redelk_user}}:{{redelk_user}} {{optsec_dir}}/{{redelk_user}}/*"
+    user: root
+  tags:
+    - cron
+
+- name: Creating crontab for local rscync of cobaltstrike downloads
+  become: yes
+  cron:
+    name: "cron.d script for periodic actions related to RedELK (local rscync of cobaltstrike downloads)"
+    cron_file: redelk_downloads
+    job: "/usr/share/redelk/bin/copydownloads.sh"
+    user: root
+  tags:
+    - cron
+
+- name: Creating crontab for local export of cobaltstrike data
+  become: yes
+  cron:
+    name: "cron.d script for periodic actions related to RedELK (local export of cobaltstrike data)"
+    cron_file: redelk_cobaltstrikedata
+    job: "/usr/share/redelk/bin/export_cobaltstrikedata.sh"
+    user: root
+  tags:
+    - cron

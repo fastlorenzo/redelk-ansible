@@ -1,0 +1,15 @@
+galaxy_info:
+  author: Lorenzo Bernardi
+  description: Role to deploy RedELK client components
+  version: 0.1
+  issue_tracker_url: https://github.com/fastlorenzo/redelk-ansible/issues
+  license: BSD-3-Clause
+  min_ansible_version: 2.9
+  platforms:
+  - name: Ubuntu
+    versions:
+    - bionic
+    - focal
+  galaxy_tags:
+    - redelk
+dependencies: []

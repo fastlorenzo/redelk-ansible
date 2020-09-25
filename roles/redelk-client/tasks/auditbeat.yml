@@ -1,0 +1,49 @@
+# auditbeat
+- name: Copy auditbeat.yml config file to the hosts
+  become: yes
+  template:
+    src: auditbeat.yml.j2
+    dest: /etc/auditbeat/auditbeat.yml
+  register: auditbeatcfg
+  tags:
+    - config
+
+- name: Copy RedELK CA file to the hosts
+  become: yes
+  copy:
+    src: certificates/redelk/redelkCA.crt
+    dest: /etc/auditbeat/redelkCA.crt
+  register: redelkca
+  tags:
+    - pki
+
+- name: Copy auditd.rules config file to filebeat directory
+  become: yes
+  template:
+    src: auditd.rules.j2
+    dest: /etc/auditbeat/audit.rules.d/auditd.rules.conf
+  register: auditdbeatcfg
+  tags:
+    - config
+
+- name: Recursively setting permissions of /etc/auditbeat folder
+  become: yes
+  file:
+    path: /etc/auditbeat
+    state: directory
+    recurse: yes
+    owner: root
+    group: root
+    mode: u=rwX,g=rX,o=-rwx
+  tags:
+    - config
+
+- name: Restarting auditbeat and enabling on boot
+  become: yes
+  service:
+    name: auditbeat
+    state: restarted
+    enabled: yes
+  when: auditbeatcfg.changed or redelkca.changed or auditdbeatcfg.changed
+  tags:
+    - services
