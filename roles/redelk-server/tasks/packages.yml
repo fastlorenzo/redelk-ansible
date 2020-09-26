@@ -29,11 +29,11 @@
   apt_repository:
     repo: ppa:openjdk-r/ppa
 
-- name: Installing OpenJDK 8 (apt)
+- name: Installing OpenJDK 11 (apt)
   become: yes
   apt:
     name:
-      - openjdk-8-jre-headless
+      - openjdk-11-jre-headless
     state: present
     update_cache: yes
 
