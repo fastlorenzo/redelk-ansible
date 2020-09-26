@@ -1,6 +1,12 @@
 path.data: /var/lib/elasticsearch
 path.logs: /var/log/elasticsearch
 
+{% if not redelk_limited_install %}
+network.bind_host: ["127.0.0.1","192.168.254.1"]
+bootstrap.memory_lock: true
+discovery.type: "single-node"
+{% endif %}
+
 xpack.security.enabled: true
 
 xpack.security.http.ssl.enabled: true

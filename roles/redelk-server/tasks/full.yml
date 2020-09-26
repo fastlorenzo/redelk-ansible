@@ -1,0 +1,88 @@
+---
+# Full install components
+- name: Create docker network
+  become: yes
+  community.general.docker_network:
+    name: dockernetredelk
+    ipam_config:
+      - subnet: 192.168.254.0/24
+        gateway: 192.168.254.1
+        iprange: 192.168.254.0/24
+
+- name: Copying RedELK Jupyter scripts to hosts
+  become: yes
+  template:
+    src: "{{item}}"
+    dest: "/usr/share/redelk/jupyter/{{ item | basename | regex_replace('.j2','') }}"
+  with_fileglob:
+    - ../templates/usr/share/redelk/jupyter/*
+
+- name: Recursively setting permissions of /usr/share/redelk folder
+  become: yes
+  file:
+    path: /usr/share/redelk
+    state: directory
+    recurse: yes
+    owner: "{{redelk_user}}"
+    group: "{{redelk_user}}"
+    mode: u=rwX,g=rwX,o=rX
+
+- name: Starting Jupyter Notebooks docker image
+  become: yes
+  docker_container:
+    name: jupyter-notebook
+    image: jupyter/scipy-notebook
+    command: start-notebook.sh --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_remote_access='True' --NotebookApp.allow_origin='*'
+    ports:
+      - "8888:8888"
+    volumes:
+      - "/usr/share/redelk/jupyter:/home/jovyan/work"
+    networks:
+      - name: dockernetredelk
+        ipv4_address: "192.168.254.2"
+        aliases:
+          - jupyter-notebook
+        links:
+          - bloodhound:192.168.254.3
+          - elasticsearch:192.168.254.1
+
+- name: Creating Neo4j/BloodHound working dir
+  become: yes
+  file:
+    path: "/usr/share/redelk/{{item}}"
+    owner: "{{redelk_user}}"
+    group: "{{redelk_user}}"
+    state: directory
+    mode: 0750
+  with_items:
+    - neo4j/data
+    - neo4j/logs
+    - neo4j/import
+    - neo4j/plugins
+
+- name: Starting Neo4j/BloodHound docker image
+  become: yes
+  docker_container:
+    name: bloodhound
+    image: specterops/bloodhound-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - "/usr/share/redelk/neo4j/data:/data"
+      - "/usr/share/redelk/neo4j/logs:/logs"
+      - "/usr/share/redelk/neo4j/import:/var/lib/neo4j/import"
+      - "/usr/share/redelk/neo4j/plugins:/plugins"
+    env:
+      NEO4J_AUTH: "neo4j/BloodHound"
+      NEO4J_dbms_memory_heap_initial__size: "{{neo4j_memory}}"
+      NEO4J_dbms_memory_heap_max__size: "{{neo4j_memory}}"
+      NEO4J_dbms_memory_pagecache_size: "{{neo4j_memory}}"
+    networks:
+      - name: dockernetredelk
+        ipv4_address: "192.168.254.3"
+        aliases:
+          - jupyter-notebook
+        links:
+          - jupyter:192.168.254.2
+          - elasticsearch:192.168.254.1

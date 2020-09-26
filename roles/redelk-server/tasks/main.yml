@@ -17,6 +17,12 @@
   tags:
     - packages
 
+# Full install - Jupyter + Neo4J/BloodHound
+- import_tasks: full.yml
+  tags:
+    - redelk_install_full
+  when: redelk_limited_install|bool == False
+
 # Generate certificates
 - import_tasks: pki-elastic.yml
   tags:

@@ -54,3 +54,13 @@
       - python-setuptools
     state: present
     update_cache: yes
+
+- name: Installing full install packages requirements (apt)
+  become: yes
+  apt:
+    name:
+      - docker.io
+      - python3-docker
+    state: present
+    update_cache: yes
+  when: redelk_limited_install|bool == False
