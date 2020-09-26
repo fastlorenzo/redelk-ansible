@@ -30,7 +30,14 @@
    "source": [
     "# define the connection to our ES instance\n",
     "from elasticsearch import Elasticsearch\n",
-    "es = Elasticsearch([{'host': 'elasticsearch', 'port': 9200}])"
+    "from elasticsearch.connection import create_ssl_context\n",
+    "import ssl\n",
+    "import urllib3\n",
+    "urllib3.disable_warnings()\n",
+    "ssl_context = create_ssl_context()\n",
+    "ssl_context.check_hostname = False\n",
+    "ssl_context.verify_mode = ssl.CERT_NONE\n",
+    "es = Elasticsearch(hosts=[{'host':'elasticsearch', 'port':9200}], scheme='https', ssl_context=ssl_context, http_auth=('{{es_redelk_user}}', '{{es_redelk_password}}'))"
    ]
   },
   {

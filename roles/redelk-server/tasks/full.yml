@@ -37,14 +37,16 @@
       - "8888:8888"
     volumes:
       - "/usr/share/redelk/jupyter:/home/jovyan/work"
+    etc_hosts:
+      # bloodhound: 192.168.254.3
+      elasticsearch: 192.168.254.1
     networks:
       - name: dockernetredelk
         ipv4_address: "192.168.254.2"
         aliases:
           - jupyter-notebook
         links:
-          - bloodhound:192.168.254.3
-          - elasticsearch:192.168.254.1
+          - bloodhound
 
 - name: Creating Neo4j/BloodHound working dir
   become: yes
@@ -78,11 +80,13 @@
       NEO4J_dbms_memory_heap_initial__size: "{{neo4j_memory}}"
       NEO4J_dbms_memory_heap_max__size: "{{neo4j_memory}}"
       NEO4J_dbms_memory_pagecache_size: "{{neo4j_memory}}"
+    etc_hosts:
+      elasticsearch: 192.168.254.1
+#      jupyter: 192.168.254.2
     networks:
       - name: dockernetredelk
         ipv4_address: "192.168.254.3"
         aliases:
           - jupyter-notebook
         links:
-          - jupyter:192.168.254.2
-          - elasticsearch:192.168.254.1
+          - jupyter
