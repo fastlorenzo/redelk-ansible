@@ -1,6 +1,12 @@
 ---
 # RedELK server installation tasks
 
+# Calculate ES & Jupyter memory
+- import_tasks: memory.yml
+  tags:
+    - elasticsearch
+    - memory
+
 # Setup needed users and SSH access
 - import_tasks: ssh.yml
   tags:

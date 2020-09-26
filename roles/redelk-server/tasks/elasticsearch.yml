@@ -6,7 +6,7 @@
     dest: "/etc/elasticsearch/{{ item | basename | regex_replace('.j2','') }}"
     owner: root
     group: elasticsearch
-    mode: 0440
+    mode: 0640
   with_fileglob:
     - ../templates/etc/elasticsearch/*
   register: elasticsearchcfg
@@ -18,7 +18,7 @@
     dest: "/etc/elasticsearch/{{item}}"
     owner: root
     group: elasticsearch
-    mode: 0440
+    mode: 0640
   with_items:
     - "{{ansible_hostname}}.crt"
     - "{{ansible_hostname}}.key"

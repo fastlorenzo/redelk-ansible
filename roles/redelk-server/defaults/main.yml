@@ -25,6 +25,8 @@ ssh_keys_path: "ssh_keys"
 redelk_ca_password: "ChangeMe"
 # redelk_cert_path | Local path to store RedELK certificates
 redelk_cert_path: "certificates/redelk"
+# redelk_limited_install | If false, Jupyter notebooks and BloodHound/Neo4J will be installed as well
+redelk_limited_install: false
 # RedELK config
 redelk_alarm_Verbosity: "0"
 redelk_alarm_interval: "3600"
