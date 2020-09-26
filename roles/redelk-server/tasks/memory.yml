@@ -75,15 +75,15 @@
     neo4j_memory: 5G
   when: not redelk_limited_install and ansible_memory_mb.real.total >= 16000
 
-- debug: var=ansible_memory_mb
-  tags:
-    - debug
-- debug: var=es_memory
-  tags:
-    - debug
-- debug: var=neo4j_memory
-  tags:
-    - debug
+# - debug: var=ansible_memory_mb
+#   tags:
+#     - debug
+# - debug: var=es_memory
+#   tags:
+#     - debug
+# - debug: var=neo4j_memory
+#   tags:
+#     - debug
 
 - name: Not enough memory for full install!
   ansible.builtin.fail:
