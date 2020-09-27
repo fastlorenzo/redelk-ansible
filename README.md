@@ -1,8 +1,12 @@
 # Ansible roles to deploy RedELK
 
-This repository contains multiple Ansible roles allowing to deploy [RedELK](https://github.com/outflanknl/RedELK/).
+This repository contains multiple Ansible playbook allowing to deploy [RedELK](https://github.com/outflanknl/RedELK/).
 
 All credits goes to the authors and contributors of RedELK.
+
+The roles can be found on the following repositories:
+- [redelk-server](https://github.com/fastlorenzo/redelk-server)
+- [redelk-client](https://github.com/fastlorenzo/redelk-client)
 
 ## Install requirements
 
