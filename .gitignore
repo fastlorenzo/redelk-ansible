@@ -2,3 +2,5 @@ ansible.log
 certificates/
 ssh_keys/
 group_vars/
+roles/
+RedELK/
