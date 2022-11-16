@@ -1,38 +1,40 @@
 # metricbeat
 - name: Install metricbeat (apt)
-  become: yes
-  apt:
+  become: true
+  ansible.builtin.apt:
     name:
       - metricbeat={{ es_version }}
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - packages
 
 - name: Copy metricbeat.yml config file to the hosts
-  become: yes
-  template:
+  become: true
+  ansible.builtin.template:
     src: metricbeat.yml.j2
     dest: /etc/metricbeat/metricbeat.yml
+    mode: 0644
   notify: restart metricbeat
   tags:
     - config
 
 - name: Copy RedELK CA file to the hosts
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "{{ redelk_cert_path }}/ca/ca.crt"
     dest: /etc/metricbeat/redelkCA.crt
+    mode: 0644
   notify: restart metricbeat
   tags:
     - pki
 
 - name: Recursively setting permissions of /etc/metricbeat folder
-  become: yes
-  file:
+  become: true
+  ansible.builtin.file:
     path: /etc/metricbeat
     state: directory
-    recurse: yes
+    recurse: true
     owner: root
     group: root
     mode: u=rwX,g=rX,o=-rwx

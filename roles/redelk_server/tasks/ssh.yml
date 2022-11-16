@@ -1,5 +1,5 @@
 - name: Create local dir to store SSH keys
-  file:
+  ansible.builtin.file:
     path: "{{ ssh_keys_path }}"
     state: directory
     mode: 0700
@@ -15,14 +15,14 @@
   register: redelkusrsshkey
 
 - name: Adding redelk user
-  become: yes
-  user:
+  become: true
+  ansible.builtin.user:
     name: "{{ redelk_user }}"
     home: "{{ optsec_dir }}/{{ redelk_user }}"
 
 - name: Creating .ssh dir for redelk and setting permissions
-  become: yes
-  file:
+  become: true
+  ansible.builtin.file:
     path: "{{ optsec_dir }}/{{ redelk_user }}/.ssh"
     owner: "{{ redelk_user }}"
     group: "{{ redelk_user }}"
@@ -31,16 +31,16 @@
   register: createsshdir
 
 - name: Copying ssh private key to remote hosts
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "{{ ssh_keys_path }}/{{ redelk_user }}_id_rsa"
     dest: "{{ optsec_dir }}/{{ redelk_user }}/.ssh/id_rsa"
     owner: "{{ redelk_user }}"
     group: "{{ redelk_user }}"
     mode: 0600
 - name: Copying ssh public key to remote hosts
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "{{ ssh_keys_path }}/{{ redelk_user }}_id_rsa.pub"
     dest: "{{ optsec_dir }}/{{ redelk_user }}/.ssh/id_rsa.pub"
     owner: "{{ redelk_user }}"
@@ -48,24 +48,24 @@
     mode: 0600
 
 - name: Creating RedELK ssh directory
-  become: yes
-  file:
+  become: true
+  ansible.builtin.file:
     path: "{{ optsec_dir }}/{{ redelk_user }}/mounts/redelk-ssh"
     state: directory
     owner: "1000"
     group: "1000"
     mode: 0755
 - name: Copying ssh private key to docker env
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "{{ ssh_keys_path }}/{{ redelk_user }}_id_rsa"
     dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/redelk-ssh/id_rsa"
     owner: "1000"
     group: "1000"
     mode: 0600
 - name: Copying ssh public key to docker env
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "{{ ssh_keys_path }}/{{ redelk_user }}_id_rsa.pub"
     dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/redelk-ssh/id_rsa.pub"
     owner: "1000"

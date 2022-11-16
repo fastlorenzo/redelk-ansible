@@ -1,36 +1,36 @@
 ---
 - name: restart filebeat
-  become: yes
-  service:
+  become: true
+  ansible.builtin.service:
     name: filebeat
     state: restarted
-    enabled: yes
+    enabled: true
   tags:
     - services
 
 - name: restart metricbeat
-  become: yes
-  service:
+  become: true
+  ansible.builtin.service:
     name: filebeat
     state: restarted
-    enabled: yes
+    enabled: true
   tags:
     - services
 
 - name: restart auditbeat
-  become: yes
-  service:
+  become: true
+  ansible.builtin.service:
     name: filebeat
     state: restarted
-    enabled: yes
+    enabled: true
   tags:
     - services
 
 - name: restart packetbeat
-  become: yes
-  service:
+  become: true
+  ansible.builtin.service:
     name: filebeat
     state: restarted
-    enabled: yes
+    enabled: true
   tags:
     - services

@@ -4,16 +4,16 @@
 # 3. prepare stesp from elkserver setup
 # 4. deploy using docker-compose
 - name: Checkout RedELK git repo (localhost)
-  git:
+  ansible.builtin.git:
     repo: 'https://github.com/{{ redelk_repo }}/RedELK.git'
     dest: "{{ redelk_repo_path }}"
     version: "{{ redelk_version }}"
-  ignore_errors: yes
+  failed_when: false
   delegate_to: localhost
 
 - name: Creating RedELK working directory
-  become: yes
-  file:
+  become: true
+  ansible.builtin.file:
     path: "{{ optsec_dir }}/{{ redelk_user }}/mounts/{{ item }}"
     state: directory
     mode: 0755
@@ -30,53 +30,57 @@
 
 # jupyter
 - name: Copying Jupyter workbooks from RedELK repository
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/jupyter-workbooks/{{ item | basename }}"
+    mode: 0644
   with_fileglob:
     - "{{ redelk_repo_path }}/elkserver/mounts/jupyter-workbooks/*"
 
 # logstash
 # - name: Copying logstash config files from RedELK repository
-#   become: yes
+#   become: true
 #   copy:
 #     src: "{{ item }}"
 #     dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/logstash-config/{{ item | basename }}"
 #   with_fileglob:
 #     - "{{ redelk_repo_path }}/elkserver/docker/redelk-logstash/redelkinstalldata/redelk-main/conf.d/*"
 - name: Copying logstash config files from RedELK repository
-  become: yes
-  synchronize:
+  become: true
+  ansible.posix.synchronize:
     src: "{{ redelk_repo_path }}/elkserver/mounts/logstash-config/"
     dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/logstash-config/"
     mode: push
-    use_ssh_args: yes
+    use_ssh_args: true
 - name: Copying Logstash beats output config
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "98-outputs-beats_logstash.conf"
     dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/logstash-config/redelk-main/conf.d/98-outputs-beats_logstash.conf"
+    mode: 0644
   when: monitor_hosts
 
 # nginx
 - name: Copying nginx config file
-  become: yes
-  template:
+  become: true
+  ansible.builtin.template:
     src: nginx-config/default.conf.j2
     dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/nginx-config/default.conf.template"
+    mode: 0644
   tags:
     - nginx
 - name: Copying ssl-dhparams.pem config file from RedELK repository
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "{{ redelk_repo_path }}/elkserver/mounts/nginx-config/ssl-dhparams.pem.template"
     dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/nginx-config/ssl-dhparams.pem.template"
+    mode: 0640
   tags:
     - nginx
 - name: Create Nginx htpasswd file ({{ es_redelk_user }})
-  become: yes
-  htpasswd:
+  become: true
+  community.general.htpasswd:
     path: "{{ optsec_dir }}/{{ redelk_user }}/mounts/nginx-config/htpasswd.users.template"
     name: "{{ es_redelk_user }}"
     password: "{{ es_redelk_password }}"
@@ -86,8 +90,8 @@
   tags:
     - nginx
 - name: Create Nginx htpasswd file (elastic)
-  become: yes
-  htpasswd:
+  become: true
+  community.general.htpasswd:
     path: "{{ optsec_dir }}/{{ redelk_user }}/mounts/nginx-config/htpasswd.users.template"
     name: elastic
     password: "{{ es_elastic_password }}"
@@ -99,33 +103,36 @@
 
 # cron
 - name: Copying RedELK cron file
-  become: yes
-  template:
+  become: true
+  ansible.builtin.template:
     src: redelk-config/etc/cron.d/redelk.j2
     dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/redelk-config/etc/cron.d/redelk"
+    mode: 0644
   tags:
     - cron
 
 # RedELK config files
 - name: Copying RedELK config files
-  become: yes
-  template:
+  become: true
+  ansible.builtin.template:
     src: "{{ item }}"
     dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/redelk-config/etc/redelk/{{ item | basename | regex_replace('.j2','') }}"
+    mode: 0644
   with_fileglob:
     - ../templates/redelk-config/etc/redelk/*.j2
 
 # Docker-compose
 - name: Copying docker-compose from RedELK repository
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "{{ redelk_repo_path }}/elkserver/redelk-{{ redelk_install_type }}.yml"
     dest: "{{ optsec_dir }}/{{ redelk_user }}/redelk-{{ redelk_install_type }}.yml"
+    mode: 0644
   tags:
     - docker
 - name: Generating docker-compose .env file
-  become: yes
-  template:
+  become: true
+  ansible.builtin.template:
     src: docker-env.j2
     dest: "{{ optsec_dir }}/{{ redelk_user }}/.env"
     mode: 0640
@@ -134,7 +141,7 @@
 
 # When monitor_hosts == true
 - name: Update docker-compose to monitor hosts (mount pipelines.yml)
-  replace:
+  ansible.builtin.replace:
     path: "{{ optsec_dir }}/{{ redelk_user }}/redelk-{{ redelk_install_type }}.yml"
     regexp: '\#- \.\/mounts\/logstash-config\/config\/pipelines\.yml\:\/usr\/share\/logstash\/config\/pipelines\.yml'
     replace: '- {{ optsec_dir }}/{{ redelk_user }}/mounts/logstash-config/config/pipelines.yml:/usr/share/logstash/config/pipelines.yml'
@@ -143,7 +150,7 @@
     - docker
 
 - name: Update docker-compose to monitor hosts (mount conf.d)
-  replace:
+  ansible.builtin.replace:
     path: "{{ optsec_dir }}/{{ redelk_user }}/redelk-{{ redelk_install_type }}.yml"
     regexp: '\#- \.\/mounts\/logstash-config\/redelk-main\:\/usr\/share\/logstash\/redelk-main'
     replace: '- {{ optsec_dir }}/{{ redelk_user }}/mounts/logstash-config/redelk-main:/usr/share/logstash/redelk-main'
@@ -153,8 +160,8 @@
 
 # init-letsencrypt.sh
 - name: Copying init-letsencrypt.sh from RedELK repository
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "{{ redelk_repo_path }}/elkserver/init-letsencrypt.sh"
     dest: "{{ optsec_dir }}/{{ redelk_user }}/init-letsencrypt.sh"
     mode: 0755
@@ -166,17 +173,17 @@
     - docker
 
 - name: Force run init-letsencrypt.sh if needed
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers
   tags:
     - pki
     - docker
 
 - name: Run `docker-compose up` again
-  become: yes
-  docker_compose:
+  become: true
+  community.docker.docker_compose:
     project_src: "{{ optsec_dir }}/{{ redelk_user }}"
     files: "redelk-{{ redelk_install_type }}.yml"
-    build: no
+    build: false
   register: output
   tags:
     - pki
@@ -184,15 +191,15 @@
 
 # redelk-logstash.pkcs8.key should be the latest cert to be generated from by the docker container
 - name: Wait until RedELK certificates are generated
-  wait_for:
+  ansible.builtin.wait_for:
     path: "{{ optsec_dir }}/{{ redelk_user }}/mounts/certs/redelk-logstash/redelk-logstash.pkcs8.key"
     state: present
   tags:
     - pki
 
 - name: Ensure local certificates directory exists
-  become: yes
-  file:
+  become: true
+  ansible.builtin.file:
     path: "{{ redelk_cert_path }}"
     state: directory
     mode: 0750
@@ -201,11 +208,11 @@
   delegate_to: localhost
 
 - name: Fetch redelk certificates
-  become: yes
-  synchronize:
+  become: true
+  ansible.posix.synchronize:
     src: "{{ optsec_dir }}/{{ redelk_user }}/mounts/certs/"
     dest: "{{ redelk_cert_path }}/"
     mode: pull
-    use_ssh_args: yes
+    use_ssh_args: true
   tags:
     - pki

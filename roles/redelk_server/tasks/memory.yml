@@ -131,8 +131,8 @@
   when: (should_exit is defined) and (should_exit | bool)
 
 - name: Creating RedELK elasticsearch-config/jvm.options.d directory
-  become: yes
-  file:
+  become: true
+  ansible.builtin.file:
     path: "{{ optsec_dir }}/{{ redelk_user }}/mounts/{{ item }}"
     state: directory
     mode: 0755
@@ -140,7 +140,8 @@
     - elasticsearch-config/jvm.options.d
 
 - name: Copying jvm.options config file
-  become: yes
-  template:
+  become: true
+  ansible.builtin.template:
     src: jvm.options.j2
     dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/elasticsearch-config/jvm.options.d/jvm.options"
+    mode: 0644

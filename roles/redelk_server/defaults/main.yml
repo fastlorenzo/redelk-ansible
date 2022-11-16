@@ -14,7 +14,7 @@ es_redelk_password: redelk
 # -- ElasticSearch redelk-ingest user's password (used by logstash)
 es_redelk_ingest_password: redelk
 # -- Kibana encryption key (32 char alphanumeric)
-es_kibana_encryptionKey: "sLOVUK5MLv0VDhKsMlQcjgAaSMLXLLVy"
+es_kibana_encryption_key: "sLOVUK5MLv0VDhKsMlQcjgAaSMLXLLVy"
 # -- Neo4J password (user: neo4j)
 neo4j_password: "BloodHound"
 # -- Base directory for components install (where customer data will be stored) - allows to store on an encrypted partition/disk
@@ -61,7 +61,7 @@ redelk_install_type: "full"
 # -- Log level of the RedELK daemon.
 redelk_loglevel: "WARNING"
 redelk_alarm_interval: "3600"
-redelk_alarm_tempDir: "/tmp"
+redelk_alarm_temp_dir: "/tmp"
 # -- List of customer's IP addresses
 customer_ips: []
 # -- List of Red Team's IP addresses
@@ -70,6 +70,7 @@ redteam_ips: []
 unknown_ips: []
 # -- List of domain names used for the exercise
 domains: []
+# yamllint disable-line rule:line-length
 # -- Sets how RedELK clients connects to filebeat `direct` (client connects to RedELK server IP directly) or `reverse` (reverse SSH tunnel is made from RedELK server to clients)
 redelk_client_connection_mode: "reverse"
 # -- Set to true to support monitoring hosts (metricbeat, packetbeat, ...)
@@ -137,7 +138,7 @@ redelk_notifications:
     enabled: false
     # -- Slack WebHook URL
     webhook_url: ""
-# -- Settings for data enrichment. You can keep these enabled even if you don't use a specific item. 
+# -- Settings for data enrichment. You can keep these enabled even if you don't use a specific item.
 # @default -- cf. below
 redelk_enrich:
   # -- Enriches rtops data from Cobalt Strike implants.
@@ -172,7 +173,8 @@ redelk_enrich:
     interval: 360
     # -- How often the TOR endpoint list should be retrieved (in seconds).
     cache: 360
-  # -- Background RedELK process that enriches redirtraffic data with IP lists configured in RedELK (via ES app or in configuration files). *Better keep it enabled.*
+  # -- Background RedELK process that enriches redirtraffic data with IP lists configured in RedELK (via ES app or in configuration files).
+  # *Better keep it enabled.*
   # @default -- cf. below
   enrich_iplists:
     # -- Wether to enable the enrichment module

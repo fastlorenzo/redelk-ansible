@@ -1,47 +1,50 @@
 # auditbeat
 - name: Install auditbeat (apt)
-  become: yes
-  apt:
+  become: true
+  ansible.builtin.apt:
     name:
       - auditbeat={{ es_version }}
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - packages
 
 - name: Copy auditbeat.yml config file to the hosts
-  become: yes
-  template:
+  become: true
+  ansible.builtin.template:
     src: auditbeat.yml.j2
     dest: /etc/auditbeat/auditbeat.yml
+    mode: 0644
   notify: restart auditbeat
   tags:
     - config
 
 - name: Copy RedELK CA file to the hosts
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "{{ redelk_cert_path }}/ca/ca.crt"
     dest: /etc/auditbeat/redelkCA.crt
+    mode: 0644
   notify: restart auditbeat
   tags:
     - pki
 
 - name: Copy auditd.rules config file to filebeat directory
-  become: yes
-  template:
+  become: true
+  ansible.builtin.template:
     src: auditd.rules.j2
     dest: /etc/auditbeat/audit.rules.d/auditd.rules.conf
+    mode: 0644
   notify: restart auditbeat
   tags:
     - config
 
 - name: Recursively setting permissions of /etc/auditbeat folder
-  become: yes
-  file:
+  become: true
+  ansible.builtin.file:
     path: /etc/auditbeat
     state: directory
-    recurse: yes
+    recurse: true
     owner: root
     group: root
     mode: u=rwX,g=rX,o=-rwx

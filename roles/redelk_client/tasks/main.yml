@@ -1,92 +1,92 @@
 ---
 # RedELK clients install (C2 and redirectors) tasks
 - name: Install depencies packages (apt)
-  become: yes
-  apt:
+  become: true
+  ansible.builtin.apt:
     name:
       - apt-transport-https
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - packages
 
 - name: Install Elastic repository
-  become: yes
+  become: true
   block:
-  - name: Adding GPG key of Elastic
-    apt_key:
-      url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
-      state: present
-  - name: Adding Elastic APT repository
-    apt_repository:
-      repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
-      state: present
-      filename: elastic-7.x
+    - name: Adding GPG key of Elastic
+      ansible.builtin.apt_key:
+        url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+        state: present
+    - name: Adding Elastic APT repository
+      ansible.builtin.apt_repository:
+        repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+        state: present
+        filename: elastic-7.x
   tags:
     - packages
 
 - name: Adding redelk user
-  become: yes
-  user:
+  become: true
+  ansible.builtin.user:
     name: "{{ redelk_user }}"
     home: "{{ optsec_dir }}/{{ redelk_user }}"
-  ignore_errors: yes
+  failed_when: false
   tags:
     - user
     - ssh
 
 - name: Adding SSH authorized_key for redelk user
-  become: yes
-  authorized_key:
+  become: true
+  ansible.posix.authorized_key:
     user: "{{ redelk_user }}"
     key: "{{ lookup('file', '{{ ssh_keys_path }}/{{ redelk_user }}_id_rsa.pub') }}"
   tags:
     - ssh
 
 - name: Install filebeat and requirements (apt)
-  become: yes
-  apt:
+  become: true
+  ansible.builtin.apt:
     name:
       - filebeat={{ es_version }}
       - python3-pip
     state: present
-    update_cache: yes
+    update_cache: true
   register: pkg
   tags:
     - packages
 
 - name: Instal required python3 modules
-  become: yes
-  pip:
+  become: true
+  ansible.builtin.pip:
     name:
       - javaobj-py3
   tags:
     - packages
 
-- import_tasks: filebeat.yml
+- ansible.builtin.import_tasks: filebeat.yml
   tags:
     - filebeat
     - beats
 
-- import_tasks: auditbeat.yml
+- ansible.builtin.import_tasks: auditbeat.yml
   tags:
     - auditbeat
     - beats
   when: '"auditbeat" in es_deploy_beats'
 
-- import_tasks: metricbeat.yml
+- ansible.builtin.import_tasks: metricbeat.yml
   tags:
     - metricbeat
     - beats
   when: '"metricbeat" in es_deploy_beats'
 
-- import_tasks: packetbeat.yml
+- ansible.builtin.import_tasks: packetbeat.yml
   tags:
     - packetbeat
     - beats
   when: '"packetbeat" in es_deploy_beats'
 
-- import_tasks: c2.yml
+- ansible.builtin.import_tasks: c2.yml
   tags:
     - c2
   when: hostvars[inventory_hostname].type == 'c2'

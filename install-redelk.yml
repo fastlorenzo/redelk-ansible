@@ -1,27 +1,27 @@
 - name: Gather facts from all hosts
   hosts: all
-  gather_facts: True
+  gather_facts: true
 
-- name: Apply redelk-server role to monitoring server(s)
+- name: Apply redelk_server role to monitoring server(s)
   hosts: monitoring
-  gather_facts: True
+  gather_facts: true
   tags:
     - monitoring
   roles:
-    - redelk-server
+    - redelk_server
 
-- name: Apply redelk-client role to teamservers
+- name: Apply redelk_client role to teamservers
   hosts: teamservers
-  gather_facts: True
+  gather_facts: true
   tags:
     - teamservers
   roles:
-    - redelk-client
+    - redelk_client
 
-- name: Apply redelk-client role to redirectors
+- name: Apply redelk_client role to redirectors
   hosts: redirectors
-  gather_facts: True
+  gather_facts: true
   tags:
     - redirectors
   roles:
-    - redelk-client
+    - redelk_client

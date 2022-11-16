@@ -1,38 +1,40 @@
 # packetbeat
 - name: Install packetbeat (apt)
-  become: yes
-  apt:
+  become: true
+  ansible.builtin.apt:
     name:
       - packetbeat={{ es_version }}
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - packages
 
 - name: Copy packetbeat.yml config file to the hosts
-  become: yes
-  template:
+  become: true
+  ansible.builtin.template:
     src: packetbeat.yml.j2
     dest: /etc/packetbeat/packetbeat.yml
+    mode: 0644
   notify: restart packetbeat
   tags:
     - config
 
 - name: Copy RedELK CA file to the hosts
-  become: yes
-  copy:
+  become: true
+  ansible.builtin.copy:
     src: "{{ redelk_cert_path }}/ca/ca.crt"
     dest: /etc/packetbeat/redelkCA.crt
+    mode: 0644
   notify: restart packetbeat
   tags:
     - pki
 
 - name: Recursively setting permissions of /etc/packetbeat folder
-  become: yes
-  file:
+  become: true
+  ansible.builtin.file:
     path: /etc/packetbeat
     state: directory
-    recurse: yes
+    recurse: true
     owner: root
     group: root
     mode: u=rwX,g=rX,o=-rwx

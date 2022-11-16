@@ -37,7 +37,7 @@ ELASTIC_PASSWORD={{ es_elastic_password }}
 # You can manually override here, e.g. 1g (lower case)
 ES_JAVA_OPTS=-Xms{{ es_memory }} -Xmx{{ es_memory }}
 ES_URL=https://redelk-elasticsearch:9200
-KBN_XPACK_ENCRYPTEDSAVEDOBJECTS={{ es_kibana_encryptionKey }}
+KBN_XPACK_ENCRYPTEDSAVEDOBJECTS={{ es_kibana_encryption_key }}
 
 
 # Neo4J / Bloodhound specific variables. $

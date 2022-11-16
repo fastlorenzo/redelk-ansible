@@ -16,7 +16,7 @@ The following variables can be modified:
 | docker_dir | string | `"/var/lib/docker"` | Docker directory |
 | domains | list | `[]` | List of domain names used for the exercise |
 | es_elastic_password | string | `"elastic"` | ElasticSearch users |
-| es_kibana_encryptionKey | string | `"sLOVUK5MLv0VDhKsMlQcjgAaSMLXLLVy"` | Kibana encryption key (32 char alphanumeric) |
+| es_kibana_encryption_key | string | `"sLOVUK5MLv0VDhKsMlQcjgAaSMLXLLVy"` | Kibana encryption key (32 char alphanumeric) |
 | es_kibana_password | string | `"kibana"` | ElasticSearch `kibana` user's password |
 | es_logstash_system_password | string | `"logstash_system"` | ElasticSearch `logstash_system` user's password |
 | es_redelk_ingest_password | string | `"redelk"` | ElasticSearch redelk-ingest user's password (used by logstash) |
@@ -31,7 +31,7 @@ The following variables can be modified:
 | neo4j_password | string | `"BloodHound"` | Neo4J password (user: neo4j) |
 | optsec_dir | string | `"/opt"` | Base directory for components install (where customer data will be stored) - allows to store on an encrypted partition/disk |
 | redelk_alarm_interval | string | `"3600"` |  |
-| redelk_alarm_tempDir | string | `"/tmp"` |  |
+| redelk_alarm_temp_dir | string | `"/tmp"` |  |
 | redelk_alarms | object | cf. below | Alarm configuration options |
 | redelk_alarms.alarm_dummy.enabled | bool | `false` | Wether to enable the alarm |
 | redelk_alarms.alarm_dummy.interval | int | `300` | Interval at which the alarm will run (in seconds) |

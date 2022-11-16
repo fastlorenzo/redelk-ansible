@@ -1,6 +1,6 @@
 - name: Installing packages requirements (apt)
-  become: yes
-  apt:
+  become: true
+  ansible.builtin.apt:
     name:
       - docker.io
       - docker-compose
@@ -9,13 +9,13 @@
       - jq
       - python3-pip
     state: present
-    update_cache: yes
+    update_cache: true
 
 - name: Install python packages requirements (pip)
-  pip:
+  ansible.builtin.pip:
     name:
-    - docker-compose
-    - docker
-    - passlib
-    - netaddr
+      - docker-compose
+      - docker
+      - passlib
+      - netaddr
   become: true

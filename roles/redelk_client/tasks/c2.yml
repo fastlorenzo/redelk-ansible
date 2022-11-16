@@ -1,7 +1,7 @@
 ######### Only for C2 servers #########
 - name: Creating RedELK log directory and setting permissions
-  become: yes
-  file:
+  become: true
+  ansible.builtin.file:
     path: /var/log/redelk
     owner: "{{ redelk_user }}"
     group: root
@@ -11,8 +11,8 @@
     - redelk-setup
 
 - name: Creating RedELK bin directory and setting permissions
-  become: yes
-  file:
+  become: true
+  ansible.builtin.file:
     path: /usr/share/redelk/bin
     owner: root
     group: "{{ redelk_user }}"
@@ -22,8 +22,8 @@
     - redelk-setup
 
 - name: Copy RedELK bin files to the hosts
-  become: yes
-  template:
+  become: true
+  ansible.builtin.template:
     src: "{{ item }}"
     dest: "/usr/share/redelk/bin/{{ item | basename | regex_replace('.j2','') }}"
     owner: root
@@ -35,8 +35,8 @@
     - redelk-setup
 
 - name: Creating crontab for local rscync of cobaltstrike logs
-  become: yes
-  cron:
+  become: true
+  ansible.builtin.cron:
     name: "cron.d script for periodic actions related to RedELK"
     cron_file: redelk_logs
     job: >-
@@ -48,8 +48,8 @@
     - cron
 
 - name: Creating crontab for local rscync of cobaltstrike profiles
-  become: yes
-  cron:
+  become: true
+  ansible.builtin.cron:
     name: "cron.d script for periodic actions related to RedELK"
     cron_file: redelk_profiles
     job: >-
@@ -61,8 +61,8 @@
     - cron
 
 - name: Creating crontab for local rscync of cobaltstrike downloads
-  become: yes
-  cron:
+  become: true
+  ansible.builtin.cron:
     name: "cron.d script for periodic actions related to RedELK (local rscync of cobaltstrike downloads)"
     cron_file: redelk_downloads
     job: "/usr/share/redelk/bin/copydownloads.sh"
@@ -71,8 +71,8 @@
     - cron
 
 - name: Creating crontab for local export of cobaltstrike data
-  become: yes
-  cron:
+  become: true
+  ansible.builtin.cron:
     name: "cron.d script for periodic actions related to RedELK (local export of cobaltstrike data)"
     cron_file: redelk_cobaltstrikedata
     job: "/usr/share/redelk/bin/export_cobaltstrikedata.sh"

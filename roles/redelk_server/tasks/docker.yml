@@ -1,15 +1,15 @@
 ---
 - name: Installing docker (apt)
-  become: yes
-  apt:
+  become: true
+  ansible.builtin.apt:
     name:
       - docker.io
     state: present
-    update_cache: yes
+    update_cache: true
 
 - name: Adding docker daemon.json
-  become: yes
-  template:
+  become: true
+  ansible.builtin.template:
     src: daemon.json.j2
     dest: /etc/docker/daemon.json
     owner: root
@@ -18,11 +18,11 @@
   notify: restart docker service
 
 - name: Force restart docker if needed
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers
 
 - name: Creating new docker directory
-  become: yes
-  file:
+  become: true
+  ansible.builtin.file:
     path: "{{ docker_dir }}"
     owner: root
     group: root
@@ -31,4 +31,4 @@
   notify: remove old docker directory
 
 - name: Force create new docker directory
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers
