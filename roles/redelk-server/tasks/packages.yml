@@ -1,0 +1,21 @@
+- name: Installing packages requirements (apt)
+  become: yes
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+      - unzip
+      - apt-transport-https
+      - jq
+      - python3-pip
+    state: present
+    update_cache: yes
+
+- name: Install python packages requirements (pip)
+  pip:
+    name:
+    - docker-compose
+    - docker
+    - passlib
+    - netaddr
+  become: true

@@ -1,0 +1,146 @@
+---
+# Limited install
+- name: Limited install - Less than 4G memory
+  ansible.builtin.set_fact:
+    es_memory: 1g
+    # logstash_memory: 1g
+  when: redelk_install_type == 'limited' and ansible_memory_mb.real.total < 4000
+
+- name: Limited install - Less than 8G memory
+  ansible.builtin.set_fact:
+    es_memory: 2g
+    # logstash_memory: 1500m
+  when: redelk_install_type == 'limited' and ansible_memory_mb.real.total >= 4000 and ansible_memory_mb.real.total < 8000
+
+- name: Limited install - More than 8G memory
+  ansible.builtin.set_fact:
+    es_memory: 4g
+    # logstash_memory: 2g
+  when: redelk_install_type == 'limited' and ansible_memory_mb.real.total >= 8000
+
+# Full install
+- name: Full install - Less than 8G memory - Not enough memory for full install, exiting
+  ansible.builtin.set_fact:
+    should_exit: true
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total < 8000
+
+- name: Full install - Between 8G and 9G memory
+  ansible.builtin.set_fact:
+    es_memory: 1g
+    # logstash_memory: 1g
+    neo4j_memory: 2G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 8000 and ansible_memory_mb.real.total < 9000
+
+- name: Full install - Between 9G and 10G memory
+  ansible.builtin.set_fact:
+    es_memory: 1g
+    # logstash_memory: 1g
+    neo4j_memory: 3G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 9000 and ansible_memory_mb.real.total < 10000
+
+- name: Full install - Between 10G and 11G memory
+  ansible.builtin.set_fact:
+    es_memory: 2g
+    # logstash_memory: 1g
+    neo4j_memory: 3G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 10000 and ansible_memory_mb.real.total < 11000
+
+- name: Full install - Between 11G and 12G memory
+  ansible.builtin.set_fact:
+    es_memory: 2g
+    # logstash_memory: 2g
+    neo4j_memory: 4G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 11000 and ansible_memory_mb.real.total < 12000
+
+- name: Full install - Between 12G and 13G memory
+  ansible.builtin.set_fact:
+    es_memory: 2g
+    # logstash_memory: 2g
+    neo4j_memory: 4G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 12000 and ansible_memory_mb.real.total < 13000
+
+- name: Full install - Between 13G and 14G memory
+  ansible.builtin.set_fact:
+    es_memory: 2g
+    # logstash_memory: 2g
+    neo4j_memory: 5G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 13000 and ansible_memory_mb.real.total < 14000
+
+- name: Full install - Between 14G and 15G memory
+  ansible.builtin.set_fact:
+    es_memory: 3g
+    # logstash_memory: 3g
+    neo4j_memory: 5G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 14000 and ansible_memory_mb.real.total < 15000
+
+- name: Full install - Between 15G and 16G memory
+  ansible.builtin.set_fact:
+    es_memory: 3g
+    # logstash_memory: 3g
+    neo4j_memory: 6G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 15000 and ansible_memory_mb.real.total < 16000
+
+- name: Full install - Between 16G and 17G memory
+  ansible.builtin.set_fact:
+    es_memory: 3g
+    # logstash_memory: 3g
+    neo4j_memory: 6G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 16000 and ansible_memory_mb.real.total < 17000
+
+- name: Full install - Between 17G and 18G memory
+  ansible.builtin.set_fact:
+    es_memory: 3g
+    # logstash_memory: 3g
+    neo4j_memory: 7G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 17000 and ansible_memory_mb.real.total < 18000
+
+- name: Full install - Between 18G and 19G memory
+  ansible.builtin.set_fact:
+    es_memory: 4g
+    # logstash_memory: 3g
+    neo4j_memory: 7G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 18000 and ansible_memory_mb.real.total < 19000
+
+- name: Full install - Between 19G and 20G memory
+  ansible.builtin.set_fact:
+    es_memory: 4g
+    # logstash_memory: 3g
+    neo4j_memory: 8G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 19000 and ansible_memory_mb.real.total < 20000
+
+- name: Full install - More than 20G memory
+  ansible.builtin.set_fact:
+    es_memory: 4g
+    # logstash_memory: 4g
+    neo4j_memory: 8G
+  when: redelk_install_type == 'full' and ansible_memory_mb.real.total >= 20000
+
+# - debug: var=ansible_memory_mb
+#   tags:
+#     - debug
+# - debug: var=es_memory
+#   tags:
+#     - debug
+# - debug: var=neo4j_memory
+#   tags:
+#     - debug
+
+- name: Not enough memory for full install!
+  ansible.builtin.fail:
+    msg: "Not enough memory for full install: {{ ansible_memory_mb.real.total }}MB. Use limited install or add memory and try again."
+  when: (should_exit is defined) and (should_exit | bool)
+
+- name: Creating RedELK elasticsearch-config/jvm.options.d directory
+  become: yes
+  file:
+    path: "{{ optsec_dir }}/{{ redelk_user }}/mounts/{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - elasticsearch-config/jvm.options.d
+
+- name: Copying jvm.options config file
+  become: yes
+  template:
+    src: jvm.options.j2
+    dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/elasticsearch-config/jvm.options.d/jvm.options"

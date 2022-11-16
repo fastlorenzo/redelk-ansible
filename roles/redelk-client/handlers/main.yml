@@ -1,0 +1,36 @@
+---
+- name: restart filebeat
+  become: yes
+  service:
+    name: filebeat
+    state: restarted
+    enabled: yes
+  tags:
+    - services
+
+- name: restart metricbeat
+  become: yes
+  service:
+    name: filebeat
+    state: restarted
+    enabled: yes
+  tags:
+    - services
+
+- name: restart auditbeat
+  become: yes
+  service:
+    name: filebeat
+    state: restarted
+    enabled: yes
+  tags:
+    - services
+
+- name: restart packetbeat
+  become: yes
+  service:
+    name: filebeat
+    state: restarted
+    enabled: yes
+  tags:
+    - services

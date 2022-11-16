@@ -1,0 +1,10 @@
+[Unit]
+Description=AutoSSH tunnel service ({{ monitored_server }} - {{ monitored_server_ip }})
+After=network.target
+
+[Service]
+Environment="AUTOSSH_GATETIME=0"
+ExecStart=/usr/bin/autossh -M 0 -o "StrictHostKeyChecking no" -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -N -R 5044:localhost:5044 {{ redelk_user }}@{{ monitored_server_ip }} -p 22 -i {{ optsec_dir }}/{{ redelk_user }}/.ssh/id_rsa
+
+[Install]
+WantedBy=multi-user.target

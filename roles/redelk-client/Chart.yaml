@@ -1,0 +1,7 @@
+name: redelk-client
+description: Ansible role to deploy [RedELK](https://github.com/outflanknl/RedELK/) client components.
+home: "https://github.com/fastlorenzo/redelk-client"
+sources: ["https://github.com/fastlorenzo/redelk-client"]
+maintainers:
+  - name: Lorenzo Bernardi
+    url: https://twitter.com/fastlorenzo

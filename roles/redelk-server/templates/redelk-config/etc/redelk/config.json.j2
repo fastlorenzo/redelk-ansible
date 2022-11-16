@@ -1,0 +1,17 @@
+{
+    "loglevel": "{{ redelk_loglevel }}",
+    "redelkserver_letsencrypt": {
+        "enable_letsencrypt": {{ le_enable | bool | to_json }},
+        "external_domain": "{{ external_domain }}",
+        "le_email": "{{ le_email }}",
+        "staging": "{{ le_staging }}"
+    },
+    "interval": {{ redelk_alarm_interval }},
+    "tempDir": "{{ redelk_alarm_tempDir }}",
+    "es_connection": [
+        "https://{{ es_redelk_user }}:{{ es_redelk_password }}@redelk-elasticsearch:9200"
+    ],
+    "notifications": {{ redelk_notifications | to_nice_json(indent=8) }},
+    "alarms": {{ redelk_alarms | to_nice_json(indent=8) }},
+    "enrich": {{ redelk_enrich | to_nice_json(indent=8) }}
+}

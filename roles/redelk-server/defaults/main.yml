@@ -1,0 +1,188 @@
+---
+# -- Elastic version
+es_version: "7.16.3"
+# -- ElasticSearch users
+es_elastic_password: elastic
+# -- ElasticSearch `logstash_system` user's password
+es_logstash_system_password: logstash_system
+# -- ElasticSearch `kibana` user's password
+es_kibana_password: kibana
+# -- ElasticSearch RedELK username
+es_redelk_user: redelk
+# -- ElasticSearch RedELK user's password
+es_redelk_password: redelk
+# -- ElasticSearch redelk-ingest user's password (used by logstash)
+es_redelk_ingest_password: redelk
+# -- Kibana encryption key (32 char alphanumeric)
+es_kibana_encryptionKey: "sLOVUK5MLv0VDhKsMlQcjgAaSMLXLLVy"
+# -- Neo4J password (user: neo4j)
+neo4j_password: "BloodHound"
+# -- Base directory for components install (where customer data will be stored) - allows to store on an encrypted partition/disk
+optsec_dir: "/opt"
+# -- Docker directory
+docker_dir: "/var/lib/docker"
+# -- RedELK SSH username (used to sync data between RedELK monitoring server and the clients)
+redelk_user: "redelk"
+# -- External domain name to expose RedELK interface on. Will also be used to request Let's Encypt certificate
+external_domain: "localhost"
+# -- Let's Encrypt email address
+le_email: ""
+# Use Let's Encrypt to request certificate for external_domain
+le_enable: true
+# -- Set to `1` to use Let's Encrypt staging endpoint.
+le_staging: 0
+# -- Local path to store ssh keys
+ssh_keys_path: "ssh_keys"
+# -- Local path to store RedELK certificates
+redelk_cert_path: "certificates/redelk"
+# -- Path to folder containing certificates in Nginx container
+certs_dir_nginx: "/etc/nginx/certs"
+# -- Local path to folder containing certificates. Replace `localhost` with the same value as `external_domain`
+certs_dir_nginx_local: "./mounts/certbot/conf/live/localhost"
+# -- Path to folder containing the CA certificate in Nginx container
+certs_dir_nginx_ca: "/etc/nginx/ca_certs"
+# -- Local path to folder containing the CA certificate
+certs_dir_nginx_ca_local: "./mounts/certs/ca"
+# -- Path to the certificate file in Nginx container
+tls_nginx_crt_path: "/etc/letsencrypt/live/{{ external_domain }}/fullchain.pem"
+# -- Path to the private key file in Nginx container
+tls_nginx_key_path: "/etc/letsencrypt/live/{{ external_domain }}/privkey.pem"
+# -- Path to the CA file in Nginx container
+tls_nginx_ca_path: "/etc/nginx/ca_certs/ca.crt"
+# -- Local path to the RedELK git repository. will be cloned if doesn't exist
+redelk_repo_path: "RedELK"
+# -- RedELK docker image repository
+redelk_repo: "outflanknl"
+# -- RedELK version to install (ignored if the git repository defined in `redelk_repo_path` is already cloned)
+redelk_version: "master"
+# -- (`full` or `limited`) If `full`, Jupyter notebooks and BloodHound/Neo4J will be installed as well
+redelk_install_type: "full"
+# RedELK config
+# -- Log level of the RedELK daemon.
+redelk_loglevel: "WARNING"
+redelk_alarm_interval: "3600"
+redelk_alarm_tempDir: "/tmp"
+# -- List of customer's IP addresses
+customer_ips: []
+# -- List of Red Team's IP addresses
+redteam_ips: []
+# -- List of Unknown IP addresses
+unknown_ips: []
+# -- List of domain names used for the exercise
+domains: []
+# -- Sets how RedELK clients connects to filebeat `direct` (client connects to RedELK server IP directly) or `reverse` (reverse SSH tunnel is made from RedELK server to clients)
+redelk_client_connection_mode: "reverse"
+# -- Set to true to support monitoring hosts (metricbeat, packetbeat, ...)
+monitor_hosts: false
+# -- Alarm configuration options
+# @default -- cf. below
+redelk_alarms:
+  # Dummy alarm configuration. Used mainly for testing purposes.
+  alarm_dummy:
+    # -- Wether to enable the alarm
+    enabled: false
+    # -- Interval at which the alarm will run (in seconds)
+    interval: 300
+  alarm_filehash:
+    # -- Wether to enable the alarm
+    enabled: true
+    # -- VirusTotal API key
+    vt_api_key: "<<INSERT_API_KEY>>"
+    # -- IBM X-Force Exchange basic authentication
+    ibm_basic_auth: "Basic <<REPLACE>>"
+    # -- Hybrid Analysis API key
+    ha_api_key: "<<INSERT_API_KEY>>"
+    # -- Interval at which the alarm will run (in seconds)
+    interval: 360
+  alarm_httptraffic:
+    # -- Wether to enable the alarm
+    enabled: true
+    # -- Interval at which the alarm will run (in seconds)
+    interval: 310
+    # -- Only notify on the same IP hit at every `notify_interval` (in seconds)
+    notify_interval: 86400
+  alarm_useragent:
+    # -- Wether to enable the alarm
+    enabled: true
+    # -- Interval at which the alarm will run (in seconds)
+    interval: 320
+# -- Alarm notifications options
+# @default -- cf. below
+redelk_notifications:
+  email:
+    # -- Wether to enable alarm notifications via e-mail
+    enabled: false
+    # SMTP configuration for e-mail
+    smtp:
+      # -- SMTP server hostname or IP address
+      host: "example.com"
+      # -- SMTP server port
+      port: "587"
+      # -- SMTP username to authenticate
+      login: "redelk@example.com"
+      # -- SMTP password to authenticate
+      pass: "redelk"
+    # -- Source e-mail address to send RedELK notifications from
+    from: "redelk@example.com"
+    # -- List of e-mail addresses to send RedELK notifications to
+    to:
+      - "redelk@example.com"
+  msteams:
+    # -- Wether to enable alarm notifications via Microsoft Teams WebHook
+    enabled: false
+    # -- Microsoft Teams WebHook URL
+    webhook_url: ""
+  slack:
+    # -- Wether to enable alarm notifications via Slack WebHook
+    enabled: false
+    # -- Slack WebHook URL
+    webhook_url: ""
+# -- Settings for data enrichment. You can keep these enabled even if you don't use a specific item. 
+# @default -- cf. below
+redelk_enrich:
+  # -- Enriches rtops data from Cobalt Strike implants.
+  # @default -- cf. below
+  enrich_csbeacon:
+    # -- Wether to enable the enrichment module
+    enabled: true
+    # -- Interval (in seconds) at which the enrichment script will run
+    interval: 300
+  # -- Enriches rtops data from Outflank's custom C2 framework.
+  # @default -- cf. below
+  enrich_stage1:
+    # -- Wether to enable the enrichment module
+    enabled: false
+    # -- Interval (in seconds) at which the enrichment script will run
+    interval: 300
+  # -- Enriches redirtraffic data with info from Greynoise. If an IP address is listed in Greynoise, this data is added.
+  # @default -- cf. below
+  enrich_greynoise:
+    # -- Wether to enable the enrichment module
+    enabled: true
+    # -- Interval (in seconds) at which the enrichment script will run
+    interval: 310
+    # -- How long the data will be cached (in seconds). If an IP was already seen within this period, a new call to GeryNoise API will not be made.
+    cache: 86400
+  # -- Enriches redirtraffic with Tor. If an IP address is a known Tor exit node, this info is added.
+  # @default -- cf. below
+  enrich_tor:
+    # -- Wether to enable the enrichment module
+    enabled: true
+    # -- Interval (in seconds) at which the enrichment script will run
+    interval: 360
+    # -- How often the TOR endpoint list should be retrieved (in seconds).
+    cache: 360
+  # -- Background RedELK process that enriches redirtraffic data with IP lists configured in RedELK (via ES app or in configuration files). *Better keep it enabled.*
+  # @default -- cf. below
+  enrich_iplists:
+    # -- Wether to enable the enrichment module
+    enabled: true
+    # -- Interval (in seconds) at which the enrichment script will run
+    interval: 330
+  # -- Background RedELK process that syncs IP lists from configuration files with ES. *Better keep it enabled.*
+  # @default -- cf. below
+  enrich_synciplists:
+    # -- Wether to enable the enrichment module
+    enabled: true
+    # -- Interval (in seconds) at which the enrichment script will run
+    interval: 360

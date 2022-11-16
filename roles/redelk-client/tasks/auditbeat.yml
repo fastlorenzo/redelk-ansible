@@ -1,0 +1,49 @@
+# auditbeat
+- name: Install auditbeat (apt)
+  become: yes
+  apt:
+    name:
+      - auditbeat={{ es_version }}
+    state: present
+    update_cache: yes
+  tags:
+    - packages
+
+- name: Copy auditbeat.yml config file to the hosts
+  become: yes
+  template:
+    src: auditbeat.yml.j2
+    dest: /etc/auditbeat/auditbeat.yml
+  notify: restart auditbeat
+  tags:
+    - config
+
+- name: Copy RedELK CA file to the hosts
+  become: yes
+  copy:
+    src: "{{ redelk_cert_path }}/ca/ca.crt"
+    dest: /etc/auditbeat/redelkCA.crt
+  notify: restart auditbeat
+  tags:
+    - pki
+
+- name: Copy auditd.rules config file to filebeat directory
+  become: yes
+  template:
+    src: auditd.rules.j2
+    dest: /etc/auditbeat/audit.rules.d/auditd.rules.conf
+  notify: restart auditbeat
+  tags:
+    - config
+
+- name: Recursively setting permissions of /etc/auditbeat folder
+  become: yes
+  file:
+    path: /etc/auditbeat
+    state: directory
+    recurse: yes
+    owner: root
+    group: root
+    mode: u=rwX,g=rX,o=-rwx
+  tags:
+    - config

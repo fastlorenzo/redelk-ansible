@@ -1,0 +1,40 @@
+# packetbeat
+- name: Install packetbeat (apt)
+  become: yes
+  apt:
+    name:
+      - packetbeat={{ es_version }}
+    state: present
+    update_cache: yes
+  tags:
+    - packages
+
+- name: Copy packetbeat.yml config file to the hosts
+  become: yes
+  template:
+    src: packetbeat.yml.j2
+    dest: /etc/packetbeat/packetbeat.yml
+  notify: restart packetbeat
+  tags:
+    - config
+
+- name: Copy RedELK CA file to the hosts
+  become: yes
+  copy:
+    src: "{{ redelk_cert_path }}/ca/ca.crt"
+    dest: /etc/packetbeat/redelkCA.crt
+  notify: restart packetbeat
+  tags:
+    - pki
+
+- name: Recursively setting permissions of /etc/packetbeat folder
+  become: yes
+  file:
+    path: /etc/packetbeat
+    state: directory
+    recurse: yes
+    owner: root
+    group: root
+    mode: u=rwX,g=rX,o=-rwx
+  tags:
+    - config

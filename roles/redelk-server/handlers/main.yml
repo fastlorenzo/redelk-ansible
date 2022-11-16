@@ -1,0 +1,66 @@
+---
+- name: restart autossh services
+  become: yes
+  systemd:
+    name: "autossh-tunnel-{{ item }}"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  with_items:
+    - "{{ hostvars.values()|list|json_query(\"[?type=='redirector'].ansible_hostname\") }}"
+    - "{{ hostvars.values()|list|json_query(\"[?type=='c2'].ansible_hostname\") }}"
+  tags:
+    - ssh
+    - service
+
+- name: restart docker service
+  become: yes
+  systemd:
+    name: docker
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  tags:
+    - docker
+    - service
+    - redelk-setup
+
+- name: remove old docker directory
+  become: yes
+  file:
+    path: "/var/lib/docker"
+    state: absent
+  when: docker_dir != '/var/lib/docker'
+  notify: symlink new docker directory
+  tags:
+    - docker
+    - redelk-setup
+
+- name: symlink new docker directory
+  file:
+    src: "{{ docker_dir }}"
+    dest: /var/lib/docker
+    owner: root
+    group: root
+    state: link
+  when: docker_dir != '/var/lib/docker'
+  tags:
+    - docker
+    - redelk-setup
+
+- name: update-ca-certificates
+  become: yes
+  command: "update-ca-certificates"
+  tags:
+    - pki
+    - redelk-setup
+
+- name: run init-letsencrypt.sh
+  become: true
+  command: "{{ optsec_dir }}/{{ redelk_user }}/init-letsencrypt.sh redelk-{{ redelk_install_type }}.yml {{ external_domain }}"
+  args:
+    chdir: "{{ optsec_dir }}/{{ redelk_user }}/"
+  ignore_errors: yes
+  tags:
+    - pki
+    - redelk-setup

@@ -1,0 +1,7 @@
+name: redelk-server
+description: Ansible role to deploy [RedELK](https://github.com/outflanknl/RedELK/) server components.
+home: "https://github.com/fastlorenzo/redelk-server"
+sources: ["https://github.com/fastlorenzo/redelk-server"]
+maintainers:
+  - name: Lorenzo Bernardi
+    url: https://twitter.com/fastlorenzo

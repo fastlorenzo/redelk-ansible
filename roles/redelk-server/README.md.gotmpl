@@ -1,0 +1,54 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.description" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+## Variables
+
+The following variables can be modified:
+
+{{ template "chart.valuesTable" . }}
+
+## Dependencies
+
+There is no specific dependency for this module.
+
+## Example Playbook
+
+```yaml
+- name: Gather facts from all hosts
+  hosts: all
+  gather_facts: True
+
+- name: Apply redelk-server role to monitoring server(s)
+  hosts: monitoring
+  gather_facts: True
+  tags:
+    - monitoring
+  roles:
+    - redelk-server
+```
+
+## Example inventory
+
+```
+[monitoring]
+redelk-server  ansible_user=rtoperator  ansible_host=192.168.20.150  ansible_become_password=redelk  type=monitoring
+
+[teamservers]
+c2-01          ansible_user=rtoperator  ansible_host=192.168.20.151  ansible_become_password=redelk  type=c2
+
+[redirectors]
+redir-01       ansible_user=rtoperator  ansible_host=192.168.20.152  ansible_become_password=redelk  type=redirector
+```
+
+{{ template "chart.sourcesSection" . }}
+
+## License
+
+BSD 3-Clause
+
+{{ template "chart.maintainersHeader" . }}
+
+Lorenzo Bernardi / [@fastlorenzo](https://twitter.com/fastlorenzo)

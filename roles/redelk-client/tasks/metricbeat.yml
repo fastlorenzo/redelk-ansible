@@ -1,0 +1,40 @@
+# metricbeat
+- name: Install metricbeat (apt)
+  become: yes
+  apt:
+    name:
+      - metricbeat={{ es_version }}
+    state: present
+    update_cache: yes
+  tags:
+    - packages
+
+- name: Copy metricbeat.yml config file to the hosts
+  become: yes
+  template:
+    src: metricbeat.yml.j2
+    dest: /etc/metricbeat/metricbeat.yml
+  notify: restart metricbeat
+  tags:
+    - config
+
+- name: Copy RedELK CA file to the hosts
+  become: yes
+  copy:
+    src: "{{ redelk_cert_path }}/ca/ca.crt"
+    dest: /etc/metricbeat/redelkCA.crt
+  notify: restart metricbeat
+  tags:
+    - pki
+
+- name: Recursively setting permissions of /etc/metricbeat folder
+  become: yes
+  file:
+    path: /etc/metricbeat
+    state: directory
+    recurse: yes
+    owner: root
+    group: root
+    mode: u=rwX,g=rX,o=-rwx
+  tags:
+    - config
