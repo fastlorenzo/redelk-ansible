@@ -3,3 +3,6 @@ certificates/
 ssh_keys/
 group_vars/
 RedELK/
+fastlorenzo-redelk*
+auth
+inventory

@@ -1,11 +1,11 @@
 #!/bin/bash
-roles=(redelk-server redelk-client)
+roles=(redelk_client redelk_server)
 
 for role in ${roles[@]}; do
   echo -e "Processing role $role\n\n"
   SAVEIFS=$IFS
   IFS=$'\n'
-  variables=$(cat roles/$role/defaults/main.yml | grep -v -E '(^#|---)' --color=never)
+  variables=$(cat roles/$role/defaults/main.yml | grep -v -E '(^#|---|^\s*-)' --color=never)
 
   echo "| Variable | Description | Default value |"
   echo "|----------|-------------|---------------|"
