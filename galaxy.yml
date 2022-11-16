@@ -61,4 +61,13 @@ issues: https://github.com/fastlorenzo/redelk-ansible/issues
 # artifact. A pattern is matched from the relative path of the file or directory of the collection directory. This
 # uses 'fnmatch' to match the files or directories. Some directories and files like 'galaxy.yml', '*.pyc', '*.retry',
 # and '.git' are always filtered
-build_ignore: []
+build_ignore:
+  - RedELK
+  - make_doc.sh
+  - ssh_keys
+  - certificates
+  - auth
+  - inventory
+  - ansible.log
+  - utils
+  - group_vars
