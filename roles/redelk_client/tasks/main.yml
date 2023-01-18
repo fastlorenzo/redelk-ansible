@@ -12,6 +12,8 @@
 
 - name: Install Elastic repository
   become: true
+  tags:
+    - packages
   block:
     - name: Adding GPG key of Elastic
       ansible.builtin.apt_key:
@@ -22,8 +24,6 @@
         repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
         state: present
         filename: elastic-7.x
-  tags:
-    - packages
 
 - name: Adding redelk user
   become: true
@@ -63,30 +63,35 @@
   tags:
     - packages
 
-- ansible.builtin.import_tasks: filebeat.yml
+- name: Setup filebeat
+  ansible.builtin.import_tasks: filebeat.yml
   tags:
     - filebeat
     - beats
 
-- ansible.builtin.import_tasks: auditbeat.yml
+- name: Setup auditbeat
+  ansible.builtin.import_tasks: auditbeat.yml
   tags:
     - auditbeat
     - beats
   when: '"auditbeat" in es_deploy_beats'
 
-- ansible.builtin.import_tasks: metricbeat.yml
+- name: Setup metricbeat
+  ansible.builtin.import_tasks: metricbeat.yml
   tags:
     - metricbeat
     - beats
   when: '"metricbeat" in es_deploy_beats'
 
-- ansible.builtin.import_tasks: packetbeat.yml
+- name: Setup packetbeat
+  ansible.builtin.import_tasks: packetbeat.yml
   tags:
     - packetbeat
     - beats
   when: '"packetbeat" in es_deploy_beats'
 
-- ansible.builtin.import_tasks: c2.yml
+- name: Setup C2
+  ansible.builtin.import_tasks: c2.yml
   tags:
     - c2
   when: hostvars[inventory_hostname].type == 'c2'

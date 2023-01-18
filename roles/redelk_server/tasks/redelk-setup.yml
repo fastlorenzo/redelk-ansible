@@ -5,7 +5,7 @@
 # 4. deploy using docker-compose
 - name: Checkout RedELK git repo (localhost)
   ansible.builtin.git:
-    repo: 'https://github.com/{{ redelk_repo }}/RedELK.git'
+    repo: "https://github.com/{{ redelk_repo }}/RedELK.git"
     dest: "{{ redelk_repo_path }}"
     version: "{{ redelk_version }}"
   failed_when: false
@@ -78,7 +78,7 @@
     mode: 0640
   tags:
     - nginx
-- name: Create Nginx htpasswd file ({{ es_redelk_user }})
+- name: Create Nginx htpasswd file for {{ es_redelk_user }}
   become: true
   community.general.htpasswd:
     path: "{{ optsec_dir }}/{{ redelk_user }}/mounts/nginx-config/htpasswd.users.template"
@@ -116,7 +116,7 @@
   become: true
   ansible.builtin.template:
     src: "{{ item }}"
-    dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/redelk-config/etc/redelk/{{ item | basename | regex_replace('.j2','') }}"
+    dest: "{{ optsec_dir }}/{{ redelk_user }}/mounts/redelk-config/etc/redelk/{{ item | basename | regex_replace('.j2', '') }}"
     mode: 0644
   with_fileglob:
     - ../templates/redelk-config/etc/redelk/*.j2
@@ -144,7 +144,7 @@
   ansible.builtin.replace:
     path: "{{ optsec_dir }}/{{ redelk_user }}/redelk-{{ redelk_install_type }}.yml"
     regexp: '\#- \.\/mounts\/logstash-config\/config\/pipelines\.yml\:\/usr\/share\/logstash\/config\/pipelines\.yml'
-    replace: '- {{ optsec_dir }}/{{ redelk_user }}/mounts/logstash-config/config/pipelines.yml:/usr/share/logstash/config/pipelines.yml'
+    replace: "- {{ optsec_dir }}/{{ redelk_user }}/mounts/logstash-config/config/pipelines.yml:/usr/share/logstash/config/pipelines.yml"
   when: monitor_hosts
   tags:
     - docker
@@ -153,7 +153,7 @@
   ansible.builtin.replace:
     path: "{{ optsec_dir }}/{{ redelk_user }}/redelk-{{ redelk_install_type }}.yml"
     regexp: '\#- \.\/mounts\/logstash-config\/redelk-main\:\/usr\/share\/logstash\/redelk-main'
-    replace: '- {{ optsec_dir }}/{{ redelk_user }}/mounts/logstash-config/redelk-main:/usr/share/logstash/redelk-main'
+    replace: "- {{ optsec_dir }}/{{ redelk_user }}/mounts/logstash-config/redelk-main:/usr/share/logstash/redelk-main"
   when: monitor_hosts
   tags:
     - docker
@@ -167,12 +167,12 @@
     mode: 0755
     owner: "{{ redelk_user }}"
     group: root
-  notify: run init-letsencrypt.sh
+  notify: Run init-letsencrypt.sh
   tags:
     - pki
     - docker
 
-- name: Force run init-letsencrypt.sh if needed
+- name: Force Run init-letsencrypt.sh if needed
   ansible.builtin.meta: flush_handlers
   tags:
     - pki

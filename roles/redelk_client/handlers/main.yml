@@ -1,5 +1,5 @@
 ---
-- name: restart filebeat
+- name: Restart filebeat
   become: true
   ansible.builtin.service:
     name: filebeat
@@ -8,7 +8,7 @@
   tags:
     - services
 
-- name: restart metricbeat
+- name: Restart metricbeat
   become: true
   ansible.builtin.service:
     name: filebeat
@@ -17,7 +17,7 @@
   tags:
     - services
 
-- name: restart auditbeat
+- name: Restart auditbeat
   become: true
   ansible.builtin.service:
     name: filebeat
@@ -26,7 +26,7 @@
   tags:
     - services
 
-- name: restart packetbeat
+- name: Restart packetbeat
   become: true
   ansible.builtin.service:
     name: filebeat

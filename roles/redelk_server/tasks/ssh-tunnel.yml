@@ -25,6 +25,6 @@
     - '{{ hostvars.values() | list | json_query("[?type==''c2''].inventory_hostname") }}'
     - '{{ hostvars.values() | list | json_query("[?type==''phishing''].inventory_hostname") }}'
     - '{{ hostvars.values() | list | json_query("[?type==''vpn''].inventory_hostname") }}'
-  notify: restart autossh services
+  notify: Restart autossh services
   tags:
     - ssh

@@ -1,35 +1,35 @@
 ---
 # RedELK server installation tasks
 
-# Calculate ES & Jupyter memory
-- ansible.builtin.import_tasks: memory.yml
+- name: Calculate ES & Jupyter memory
+  ansible.builtin.import_tasks: memory.yml
   tags:
     - elasticsearch
     - memory
     - redelk-setup
 
-# Setup needed users and SSH access
-- ansible.builtin.import_tasks: ssh.yml
+- name: Setup needed users and SSH access
+  ansible.builtin.import_tasks: ssh.yml
   tags:
     - ssh
 
-# Installed required packages
-- ansible.builtin.import_tasks: packages.yml
+- name: Installed required packages
+  ansible.builtin.import_tasks: packages.yml
   tags:
     - packages
 
-# Apply docker fixes
-- ansible.builtin.import_tasks: docker.yml
+- name: Apply docker fixes
+  ansible.builtin.import_tasks: docker.yml
   tags:
     - docker
 
-# Setup RedELK
-- ansible.builtin.import_tasks: redelk-setup.yml
+- name: Setup RedELK server
+  ansible.builtin.import_tasks: redelk-setup.yml
   tags:
     - redelk-setup
 
-# Setup SSH reverse tunnel to client if redelk_client_connection_mode == 'reverse'
-- ansible.builtin.import_tasks: ssh-tunnel.yml
+- name: Setup SSH reverse tunnel to client if redelk_client_connection_mode == 'reverse'
+  ansible.builtin.import_tasks: ssh-tunnel.yml
   tags:
     - ssh-tunnel
   when: redelk_client_connection_mode == 'reverse'

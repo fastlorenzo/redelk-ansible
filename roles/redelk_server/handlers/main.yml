@@ -1,5 +1,5 @@
 ---
-- name: restart autossh services
+- name: Restart autossh services
   become: true
   ansible.builtin.systemd:
     name: "autossh-tunnel-{{ item }}"
@@ -13,7 +13,7 @@
     - ssh
     - service
 
-- name: restart docker service
+- name: Restart docker service
   become: true
   ansible.builtin.systemd:
     name: docker
@@ -25,18 +25,18 @@
     - service
     - redelk-setup
 
-- name: remove old docker directory
+- name: Remove old docker directory
   become: true
   ansible.builtin.file:
     path: "/var/lib/docker"
     state: absent
   when: docker_dir != '/var/lib/docker'
-  notify: symlink new docker directory
+  notify: Symlink new docker directory
   tags:
     - docker
     - redelk-setup
 
-- name: symlink new docker directory
+- name: Symlink new docker directory
   ansible.builtin.file:
     src: "{{ docker_dir }}"
     dest: /var/lib/docker
@@ -48,14 +48,14 @@
     - docker
     - redelk-setup
 
-- name: update-ca-certificates
+- name: Update ca certificates
   become: true
-  ansible.builtin.command: "update-ca-certificates"
+  ansible.builtin.command: "Update ca certificates"
   tags:
     - pki
     - redelk-setup
 
-- name: run init-letsencrypt.sh
+- name: Run init-letsencrypt.sh
   become: true
   ansible.builtin.command: "{{ optsec_dir }}/{{ redelk_user }}/init-letsencrypt.sh redelk-{{ redelk_install_type }}.yml {{ external_domain }}"
   args:

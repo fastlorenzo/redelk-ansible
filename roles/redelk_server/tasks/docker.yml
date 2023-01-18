@@ -15,7 +15,7 @@
     owner: root
     group: root
     mode: 0640
-  notify: restart docker service
+  notify: Restart docker service
 
 - name: Force restart docker if needed
   ansible.builtin.meta: flush_handlers
@@ -28,7 +28,7 @@
     group: root
     state: directory
     mode: 0750
-  notify: remove old docker directory
+  notify: Remove old docker directory
 
 - name: Force create new docker directory
   ansible.builtin.meta: flush_handlers

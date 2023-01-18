@@ -25,7 +25,7 @@
   become: true
   ansible.builtin.template:
     src: "{{ item }}"
-    dest: "/usr/share/redelk/bin/{{ item | basename | regex_replace('.j2','') }}"
+    dest: "/usr/share/redelk/bin/{{ item | basename | regex_replace('.j2', '') }}"
     owner: root
     group: "{{ redelk_user }}"
     mode: 0750

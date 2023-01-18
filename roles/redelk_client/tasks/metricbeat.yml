@@ -15,7 +15,7 @@
     src: metricbeat.yml.j2
     dest: /etc/metricbeat/metricbeat.yml
     mode: 0644
-  notify: restart metricbeat
+  notify: Restart metricbeat
   tags:
     - config
 
@@ -25,7 +25,7 @@
     src: "{{ redelk_cert_path }}/ca/ca.crt"
     dest: /etc/metricbeat/redelkCA.crt
     mode: 0644
-  notify: restart metricbeat
+  notify: Restart metricbeat
   tags:
     - pki
 

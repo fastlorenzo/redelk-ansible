@@ -6,7 +6,7 @@
     src: filebeat.yml.j2
     dest: /etc/filebeat/filebeat.yml
     mode: 0644
-  notify: restart filebeat
+  notify: Restart filebeat
   tags:
     - config
 
@@ -16,7 +16,7 @@
     src: "{{ redelk_cert_path }}/ca/ca.crt"
     dest: /etc/filebeat/redelkCA.crt
     mode: 0644
-  notify: restart filebeat
+  notify: Restart filebeat
   tags:
     - pki
 

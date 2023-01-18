@@ -15,7 +15,7 @@
     src: auditbeat.yml.j2
     dest: /etc/auditbeat/auditbeat.yml
     mode: 0644
-  notify: restart auditbeat
+  notify: Restart auditbeat
   tags:
     - config
 
@@ -25,7 +25,7 @@
     src: "{{ redelk_cert_path }}/ca/ca.crt"
     dest: /etc/auditbeat/redelkCA.crt
     mode: 0644
-  notify: restart auditbeat
+  notify: Restart auditbeat
   tags:
     - pki
 
@@ -35,7 +35,7 @@
     src: auditd.rules.j2
     dest: /etc/auditbeat/audit.rules.d/auditd.rules.conf
     mode: 0644
-  notify: restart auditbeat
+  notify: Restart auditbeat
   tags:
     - config
 
