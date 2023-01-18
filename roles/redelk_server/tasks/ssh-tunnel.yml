@@ -21,10 +21,10 @@
     monitored_server: "{{ item }}"
     monitored_server_ip: "{{ hostvars[item].ansible_host }}"
   with_items:
-    - "{{ hostvars.values() | list | json_query(\"[?type=='redirector'].ansible_hostname\") }}"
-    - "{{ hostvars.values() | list | json_query(\"[?type=='c2'].ansible_hostname\") }}"
-    - "{{ hostvars.values() | list | json_query(\"[?type=='phishing'].ansible_hostname\") }}"
-    - "{{ hostvars.values() | list | json_query(\"[?type=='vpn'].ansible_hostname\") }}"
+    - '{{ hostvars.values() | list | json_query("[?type==''redirector''].inventory_hostname") }}'
+    - '{{ hostvars.values() | list | json_query("[?type==''c2''].inventory_hostname") }}'
+    - '{{ hostvars.values() | list | json_query("[?type==''phishing''].inventory_hostname") }}'
+    - '{{ hostvars.values() | list | json_query("[?type==''vpn''].inventory_hostname") }}'
   notify: restart autossh services
   tags:
     - ssh

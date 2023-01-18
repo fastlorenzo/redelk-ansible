@@ -7,8 +7,8 @@
     enabled: true
     daemon_reload: true
   with_items:
-    - "{{ hostvars.values() | list | json_query(\"[?type=='redirector'].ansible_hostname\") }}"
-    - "{{ hostvars.values() | list | json_query(\"[?type=='c2'].ansible_hostname\") }}"
+    - '{{ hostvars.values() | list | json_query("[?type==''redirector''].inventory_hostname") }}'
+    - '{{ hostvars.values() | list | json_query("[?type==''c2''].inventory_hostname") }}'
   tags:
     - ssh
     - service
