@@ -1,0 +1,38 @@
+# {{ ansible_managed }}
+{% raw %}
+- type: log
+  enabled: true
+  fields_under_root: true
+  paths:
+    - /var/log/haproxy.log
+  fields:
+    infra:
+      log:
+        type: redirtraffic
+    redir:
+      program: haproxy
+
+- type: log
+  enabled: true
+  fields_under_root: true
+  paths:
+    - /var/log/apache2/*access*.log
+  fields:
+    infra:
+      log:
+        type: redirtraffic
+    redir:
+      program: apache
+
+- type: log
+  enabled: true
+  fields_under_root: true
+  paths:
+    - /var/log/nginx/*access*.log
+  fields:
+    infra:
+      log:
+        type: redirtraffic
+    redir:
+      program: nginx
+{% endraw %}

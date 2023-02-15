@@ -1,0 +1,37 @@
+# {{ ansible_managed }}
+- type: log
+  scan_frequency: 5s
+  enabled: true
+  fields_under_root: true
+  paths:
+    - {{ optsec_dir }}/stage1c2server/shared/logs/main.log
+  fields:
+    infra:
+      attack_scenario: {{ attack_scenario }}
+      log:
+        type: rtops
+    c2:
+      program: stage1
+      log:
+        type: events
+
+- type: log
+  scan_frequency: 5s
+  enabled: true
+  fields_under_root: true
+  paths:
+    - {{ optsec_dir }}/stage1c2server/shared/logs/stage1/*.log
+{% raw %}
+  multiline.pattern: '^\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d\sUTC\s' # match "2020-04-26 19:49:03 UTC
+{% endraw %}
+  multiline.negate: true
+  multiline.match: after
+  fields:
+    infra:
+      attack_scenario: {{ attack_scenario }}
+      log:
+        type: rtops
+    c2:
+      program: stage1
+      log:
+        type: implant

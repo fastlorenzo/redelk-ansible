@@ -1,7 +1,4 @@
-{{ ansible_managed | comment }}
-
-filebeat.inputs:
-{% if hostvars[inventory_hostname].type == 'c2' %}
+# {{ ansible_managed }}
 - type: log
   scan_frequency: 5s
   enabled: true
@@ -10,6 +7,7 @@ filebeat.inputs:
     - {{ optsec_dir }}/cobaltstrike/logs/*/events.log
   fields:
     infra:
+      attack_scenario: {{ attack_scenario }}
       log:
         type: rtops
     c2:
@@ -25,6 +23,7 @@ filebeat.inputs:
     - {{ optsec_dir }}/cobaltstrike/logs/*/weblog.log
   fields:
     infra:
+      attack_scenario: {{ attack_scenario }}
       log:
         type: rtops
     c2:
@@ -40,6 +39,7 @@ filebeat.inputs:
     - {{ optsec_dir }}/cobaltstrike/logs/*/downloads.log
   fields:
     infra:
+      attack_scenario: {{ attack_scenario }}
       log:
         type: rtops
     c2:
@@ -55,6 +55,7 @@ filebeat.inputs:
     - {{ optsec_dir }}/cobaltstrike/data/export_credentials.tsv
   fields:
     infra:
+      attack_scenario: {{ attack_scenario }}
       log:
         type: rtops
     c2:
@@ -83,14 +84,17 @@ filebeat.inputs:
   fields_under_root: true
   paths:
     - {{ optsec_dir }}/cobaltstrike/logs/*/*/beacon_*.log
+    - {{ optsec_dir }}/cobaltstrike/logs/*/*/ssh_*.log
 {% raw %}
   # Since Cobalt Strike version 3.14 the time format in the logs is changed. Here we use regex 'or' function (expr1)|(expr2) to match new or old format
   multiline.pattern: '(^\d\d\/\d\d\s\d\d\:\d\d\:\d\d\sUTC\s\[)|(^\d\d\/\d\d\s\d\d\:\d\d\:\d\d\s\[)' # match "06/19 12:32:56 UTC [" or "06/19 12:32:56 ["
 {% endraw %}
   multiline.negate: true
   multiline.match: after
+  multiline.max_lines: 100000
   fields:
     infra:
+      attack_scenario: {{ attack_scenario }}
       log:
         type: rtops
     c2:
@@ -113,6 +117,7 @@ filebeat.inputs:
   multiline.max_lines: 100000
   fields:
     infra:
+      attack_scenario: {{ attack_scenario }}
       log:
         type: rtops
     c2:
@@ -135,95 +140,10 @@ filebeat.inputs:
   multiline.max_lines: 100000
   fields:
     infra:
+      attack_scenario: {{ attack_scenario }}
       log:
         type: rtops
     c2:
       program: cobaltstrike
       log:
         type: screenshots
-{% endif %}
-
-{% if hostvars[inventory_hostname].type == 'redirector' %}
-{% raw %}
-- type: log
-  enabled: true
-  fields_under_root: true
-  paths:
-    - /var/log/haproxy.log
-  fields:
-    infra:
-      log:
-        type: redirtraffic
-    redir:
-      program: haproxy
-
-- type: log
-  enabled: true
-  fields_under_root: true
-  paths:
-    - /var/log/apache2/access.log
-  fields:
-    infra:
-      log:
-        type: redirtraffic
-    redir:
-      program: apache
-
-- type: log
-  enabled: true
-  fields_under_root: true
-  paths:
-    - /var/log/nginx/access.log
-  fields:
-    infra:
-      log:
-        type: redirtraffic
-    redir:
-      program: nginx
-{% endraw %}
-{% endif %}
-
-filebeat.modules:
-
-- module: system
-  # Syslog
-  syslog:
-    enabled: true
-  # Authorization logs
-  auth:
-    enabled: true
-
-- module: auditd
-  log:
-    enabled: true
-
-{% if hostvars[inventory_hostname].type == 'redirector' %}
-{% raw %}
-- module: haproxy
-  log:
-    enabled: true
-{% endraw %}
-{% endif %}
-
-{% if hostvars[inventory_hostname].type == 'phishing' %}
-{% raw %}
-- module: apache
-  access:
-    enabled: true
-  error:
-    enabled: true
-{% endraw %}
-{% endif %}
-
-setup.ilm.enabled: false
-
-name: "{{ inventory_hostname }}"
-fields_under_root: true
-fields:
-  infra:
-    attack_scenario: {{ attack_scenario }}
-
-output.logstash:
-  hosts: ["{{ redelk_server_host }}:5044"]
-  ssl.certificate_authorities:
-    - /etc/filebeat/redelkCA.crt

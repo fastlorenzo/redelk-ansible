@@ -3,10 +3,88 @@
 - name: Copy filebeat.yml config file to the hosts
   become: true
   ansible.builtin.template:
-    src: filebeat.yml.j2
+    src: etc/filebeat/filebeat.yml.j2
     dest: /etc/filebeat/filebeat.yml
     mode: 0644
   notify: Restart filebeat
+  tags:
+    - config
+
+- name: Ensure /etc/filebeat/inputs.d folder exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/filebeat/inputs.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - config
+
+- name: Copy C2 filebeat config file to the hosts
+  become: true
+  ansible.builtin.template:
+    src: "etc/filebeat/inputs.d/{{ item }}.yml.j2"
+    dest: "/etc/filebeat/inputs.d/{{ item }}.yml"
+    mode: 0644
+  notify: Restart filebeat
+  when: hostvars[inventory_hostname].type == 'c2'
+  loop:
+    - cobaltstrike
+    - outflankstage1
+    - poshc2
+  tags:
+    - config
+
+- name: Copy redir filebeat config file to the hosts
+  become: true
+  ansible.builtin.template:
+    src: "etc/filebeat/inputs.d/{{ item }}.yml.j2"
+    dest: "/etc/filebeat/inputs.d/{{ item }}.yml"
+    mode: 0644
+  notify: Restart filebeat
+  when: hostvars[inventory_hostname].type == 'redirector'
+  loop:
+    - redirs
+  tags:
+    - config
+
+- name: Ensure /etc/filebeat/modules.d folder exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/filebeat/modules.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  tags:
+    - config
+
+- name: Enable filbeat modules for all systems
+  become: true
+  ansible.builtin.template:
+    src: "etc/filebeat/modules.d/{{ item }}.yml.j2"
+    dest: "/etc/filebeat/modules.d/{{ item }}.yml"
+    mode: 0644
+  notify: Restart filebeat
+  loop:
+    - auditd
+    - system
+  tags:
+    - config
+
+- name: Enable filebeat modules for systems with webserver
+  become: true
+  ansible.builtin.template:
+    src: "etc/filebeat/modules.d/{{ item }}.yml.j2"
+    dest: "/etc/filebeat/modules.d/{{ item }}.yml"
+    mode: 0644
+  notify: Restart filebeat
+  when: hostvars[inventory_hostname].type == 'redirector' or hostvars[inventory_hostname].type == 'phishing'
+  loop:
+    - apache
+    - haproxy
+    - nginx
   tags:
     - config
 

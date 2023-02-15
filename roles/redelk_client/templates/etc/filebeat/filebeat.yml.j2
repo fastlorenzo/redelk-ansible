@@ -1,0 +1,24 @@
+{{ ansible_managed | comment }}
+
+filebeat.config.inputs:
+  enabled: true
+  path: /etc/filebeat/conf.d/*.yml
+  reload.enabled: true
+  reload.period: 10s
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+setup.ilm.enabled: false
+
+setup.template.settings:
+  index.number_of_shards: 3
+
+name: "{{ inventory_hostname }}"
+fields_under_root: true
+
+output.logstash:
+  hosts: ["{{ redelk_server_host }}:5044"]
+  ssl.certificate_authorities:
+    - /etc/filebeat/redelkCA.crt
