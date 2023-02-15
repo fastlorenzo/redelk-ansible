@@ -44,6 +44,7 @@ tags:
 # range specifiers can be set and are separated by ','
 dependencies:
   "community.crypto": ">=2.8.1,<3.0.0"
+  "community.docker": ">=3.4.0,<4.0.0"
 
 # The URL of the originating SCM repository
 repository: https://github.com/fastlorenzo/redelk-ansible
@@ -71,3 +72,4 @@ build_ignore:
   - ansible.log
   - utils
   - group_vars
+  - .pre-commit-config.yaml
